@@ -1541,39 +1541,53 @@
     }
 
     function getFoodStatus(daysLeft) {
-      if (daysLeft < 0) {
-        return {
-          className: "expired",
-          text: Math.abs(daysLeft) + "日期限切れ"
-        };
-      }
 
-      if (daysLeft === 0) {
+    // 期限切れ
+    if (daysLeft < 0) {
         return {
-          className: "today",
-          text: "今日まで"
+            className: "expired",
+            text: Math.abs(daysLeft) + "日経過"
         };
-      }
+    }
 
-      if (daysLeft <= 3) {
+    // 今日まで
+    if (daysLeft === 0) {
         return {
-          className: "soon",
-          text: "あと" + daysLeft + "日"
+            className: "today",
+            text: "今日まで"
         };
-      }
+    }
 
-      if (daysLeft <= 7) {
+    // あと1日
+    if (daysLeft === 1) {
         return {
-          className: "week",
-          text: "あと" + daysLeft + "日"
+            className: "today",
+            text: "あと1日"
         };
-      }
+    }
 
-      return {
+    // あと2〜6日
+    if (daysLeft <= 6) {
+        return {
+            className: "soon",
+            text: "あと" + daysLeft + "日"
+        };
+    }
+
+    // あと7〜19日
+    if (daysLeft <= 19) {
+        return {
+            className: "week",
+            text: "あと" + daysLeft + "日"
+        };
+    }
+
+    // あと20日以上
+    return {
         className: "safe",
         text: "あと" + daysLeft + "日"
-      };
-    }
+    };
+}
 
     function openAddSeasoning() {
       resetSeasoningForm();
