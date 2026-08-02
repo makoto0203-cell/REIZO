@@ -630,7 +630,7 @@
         <button
           class="menu-button"
           type="button"
-          onclick="showScreen('stockScreen')"
+          onclick="document.getElementById('stockSort').value='expiry'; showScreen('stockScreen'); renderStock();"
         >
           <span class="menu-icon">🧊</span>
           <span class="menu-title">冷蔵庫の中</span>
