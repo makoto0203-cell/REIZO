@@ -719,10 +719,10 @@
   <label for="foodType">種類</label>
 
   <select id="foodType">
-    <option value="鶏肉">鶏肉</option>
-    <option value="豚肉">豚肉</option>
-    <option value="牛肉">牛肉</option>
-    <option value="ジビエ">ジビエ</option>
+    <option value="">選択してください</option>
+    
+    
+    
   </select>
 </div>
 
@@ -1829,10 +1829,25 @@ function setDefaultUnitByCategory() {
     const unit = document.getElementById("foodUnit");
 const foodTypeField = document.getElementById("foodTypeField");
 
-if (category === "肉") {
-    foodTypeField.style.display = "block";
+
+    const foodType = document.getElementById("foodType");
+
+const foodTypes = {
+  "肉": ["鶏肉", "豚肉", "牛肉", "ジビエ"],
+  "魚": ["鮭", "マグロ", "サバ", "アジ", "その他"],
+  "野菜": ["葉物", "根菜", "きのこ", "その他"],
+  "果物": ["りんご", "バナナ", "みかん", "ぶどう", "その他"]
+};
+
+if (foodTypes[category]) {
+  foodTypeField.style.display = "block";
+  foodType.innerHTML = '<option value="">選択してください</option>';
+
+  foodTypes[category].forEach(function(item) {
+    foodType.innerHTML += '<option value="' + item + '">' + item + '</option>';
+  });
 } else {
-    foodTypeField.style.display = "none";
+  foodTypeField.style.display = "none";
 }
     switch (category) {
         case "肉":
