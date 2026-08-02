@@ -715,7 +715,7 @@
               <option value="その他">その他</option>
             </select>
           </div>
-          <div class="field">
+          <div class="field" id="foodTypeField" style="display:none;">
   <label for="foodType">種類</label>
 
   <select id="foodType">
@@ -1821,7 +1821,13 @@
 function setDefaultUnitByCategory() {
     const category = document.getElementById("foodCategory").value;
     const unit = document.getElementById("foodUnit");
+const foodTypeField = document.getElementById("foodTypeField");
 
+if (category === "肉") {
+    foodTypeField.style.display = "block";
+} else {
+    foodTypeField.style.display = "none";
+}
     switch (category) {
         case "肉":
         case "魚":
