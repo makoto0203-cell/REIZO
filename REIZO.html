@@ -1,19 +1,536 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>REIZO</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>REIZO</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 20px 16px 40px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f4f6f8;
+      color: #222;
+    }
+
+    .app {
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 4px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 24px;
+    }
+
+    .screen {
+      display: none;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 14px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.07);
+    }
+
+    .menu-button,
+    .primary-button,
+    .secondary-button {
+      width: 100%;
+      border: none;
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 12px;
+      font-size: 17px;
+      cursor: pointer;
+    }
+
+    .menu-button {
+      background: white;
+      text-align: left;
+      font-weight: bold;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.07);
+    }
+
+    .primary-button {
+      background: #222;
+      color: white;
+      font-weight: bold;
+    }
+
+    .secondary-button {
+      background: white;
+      border: 1px solid #ccc;
+    }
+
+    .back-button {
+      border: none;
+      background: white;
+      padding: 10px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-bottom: 14px;
+    }
+
+    label {
+      display: block;
+      margin: 14px 0 6px;
+      font-weight: bold;
+    }
+
+    input,
+    select {
+      width: 100%;
+      padding: 13px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      font-size: 16px;
+    }
+
+    .item {
+      background: white;
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 10px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+    }
+
+    .item-name {
+      font-weight: bold;
+      font-size: 18px;
+      margin-bottom: 6px;
+    }
+
+    .item-info {
+      color: #666;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+
+    .delete-button {
+      margin-top: 10px;
+      border: none;
+      background: transparent;
+      color: red;
+      cursor: pointer;
+    }
+
+    .danger {
+      border-left: 6px solid #e53935;
+      background: #fff0f0;
+    }
+
+    .soon {
+      border-left: 6px solid #ff9800;
+      background: #fff7e8;
+    }
+
+    .week {
+      border-left: 6px solid #fbc02d;
+      background: #fffbea;
+    }
+
+    .safe {
+      border-left: 6px solid #43a047;
+      background: #f1fff3;
+    }
+
+    .empty {
+      background: white;
+      border-radius: 14px;
+      padding: 20px;
+      text-align: center;
+      color: #777;
+    }
+  </style>
 </head>
+
 <body>
+  <main class="app">
 
-<h1>REIZO</h1>
+    <section id="homeScreen" class="screen active">
+      <h1>REIZO</h1>
+      <p class="subtitle">冷蔵庫の食材を期限順に管理</p>
 
-<p>試作品作成中...</p>
+      <div class="card">
+        <h2>賞味期限が近い食材</h2>
+        <div id="urgentList"></div>
+      </div>
 
-<button>食材追加</button><br><br>
-<button>カテゴリー</button><br><br>
-<button>調味料</button>
+      <button class="menu-button" onclick="showScreen('addScreen')">
+        ＋ 食材を追加
+      </button>
 
+      <button class="menu-button" onclick="showScreen('stockScreen')">
+        冷蔵庫の中
+      </button>
+
+      <button class="menu-button" onclick="showScreen('categoryScreen')">
+        カテゴリー
+      </button>
+
+      <button class="menu-button" onclick="showScreen('seasoningScreen')">
+        調味料
+      </button>
+    </section>
+
+    <section id="addScreen" class="screen">
+      <button class="back-button" onclick="showScreen('homeScreen')">
+        ← 戻る
+      </button>
+
+      <div class="card">
+        <h2>食材を追加</h2>
+
+        <label for="foodName">食材名</label>
+        <input id="foodName" type="text" placeholder="例：豚バラ肉">
+
+        <label for="foodCategory">カテゴリー</label>
+        <select id="foodCategory">
+          <option value="肉">肉</option>
+          <option value="魚">魚</option>
+          <option value="野菜">野菜</option>
+          <option value="卵・乳製品">卵・乳製品</option>
+          <option value="飲み物">飲み物</option>
+          <option value="冷凍食品">冷凍食品</option>
+          <option value="その他">その他</option>
+        </select>
+
+        <label for="foodAmount">数量</label>
+        <input id="foodAmount" type="text" placeholder="例：300g、2個">
+
+        <label for="foodExpiry">賞味期限・消費期限</label>
+        <input id="foodExpiry" type="date">
+
+        <label for="foodLocation">保存場所</label>
+        <select id="foodLocation">
+          <option value="冷蔵">冷蔵</option>
+          <option value="冷凍">冷凍</option>
+          <option value="常温">常温</option>
+        </select>
+
+        <button class="primary-button" onclick="addFood()">
+          登録する
+        </button>
+
+        <button class="secondary-button" onclick="showScreen('homeScreen')">
+          キャンセル
+        </button>
+      </div>
+    </section>
+
+    <section id="stockScreen" class="screen">
+      <button class="back-button" onclick="showScreen('homeScreen')">
+        ← 戻る
+      </button>
+
+      <h2>冷蔵庫の中</h2>
+      <div id="stockList"></div>
+    </section>
+
+    <section id="categoryScreen" class="screen">
+      <button class="back-button" onclick="showScreen('homeScreen')">
+        ← 戻る
+      </button>
+
+      <h2>カテゴリー</h2>
+      <div id="categoryList"></div>
+    </section>
+
+    <section id="seasoningScreen" class="screen">
+      <button class="back-button" onclick="showScreen('homeScreen')">
+        ← 戻る
+      </button>
+
+      <div class="card">
+        <h2>調味料</h2>
+        <p>調味料の登録機能は次の段階で追加します。</p>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    const STORAGE_KEY = "reizoFoods";
+
+    let foods = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+
+    function showScreen(screenId) {
+      document.querySelectorAll(".screen").forEach(function(screen) {
+        screen.classList.remove("active");
+      });
+
+      document.getElementById(screenId).classList.add("active");
+
+      if (screenId === "homeScreen") {
+        renderUrgentFoods();
+      }
+
+      if (screenId === "stockScreen") {
+        renderStock();
+      }
+
+      if (screenId === "categoryScreen") {
+        renderCategories();
+      }
+
+      window.scrollTo(0, 0);
+    }
+
+    function addFood() {
+      const name = document.getElementById("foodName").value.trim();
+      const category = document.getElementById("foodCategory").value;
+      const amount = document.getElementById("foodAmount").value.trim();
+      const expiry = document.getElementById("foodExpiry").value;
+      const location = document.getElementById("foodLocation").value;
+
+      if (!name) {
+        alert("食材名を入力してください");
+        return;
+      }
+
+      if (!expiry) {
+        alert("期限を入力してください");
+        return;
+      }
+
+      const food = {
+        id: Date.now(),
+        name: name,
+        category: category,
+        amount: amount || "数量未入力",
+        expiry: expiry,
+        location: location
+      };
+
+      foods.push(food);
+      saveFoods();
+
+      document.getElementById("foodName").value = "";
+      document.getElementById("foodAmount").value = "";
+      document.getElementById("foodExpiry").value = "";
+
+      alert("食材を登録しました");
+      showScreen("homeScreen");
+    }
+
+    function saveFoods() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(foods));
+    }
+
+    function deleteFood(id) {
+      const result = confirm("この食材を削除しますか？");
+
+      if (!result) {
+        return;
+      }
+
+      foods = foods.filter(function(food) {
+        return food.id !== id;
+      });
+
+      saveFoods();
+      renderStock();
+      renderUrgentFoods();
+      renderCategories();
+    }
+
+    function getDaysLeft(expiry) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const expiryDate = new Date(expiry + "T00:00:00");
+      const difference = expiryDate - today;
+
+      return Math.ceil(difference / 86400000);
+    }
+
+    function getStatus(daysLeft) {
+      if (daysLeft < 0) {
+        return {
+          className: "danger",
+          text: Math.abs(daysLeft) + "日期限切れ"
+        };
+      }
+
+      if (daysLeft === 0) {
+        return {
+          className: "danger",
+          text: "今日が期限"
+        };
+      }
+
+      if (daysLeft <= 3) {
+        return {
+          className: "soon",
+          text: "あと" + daysLeft + "日"
+        };
+      }
+
+      if (daysLeft <= 7) {
+        return {
+          className: "week",
+          text: "あと" + daysLeft + "日"
+        };
+      }
+
+      return {
+        className: "safe",
+        text: "あと" + daysLeft + "日"
+      };
+    }
+
+    function sortFoods(list) {
+      return list.slice().sort(function(a, b) {
+        return new Date(a.expiry) - new Date(b.expiry);
+      });
+    }
+
+    function createFoodHtml(food, showDeleteButton) {
+      const daysLeft = getDaysLeft(food.expiry);
+      const status = getStatus(daysLeft);
+
+      let deleteButton = "";
+
+      if (showDeleteButton) {
+        deleteButton =
+          '<button class="delete-button" onclick="deleteFood(' +
+          food.id +
+          ')">削除</button>';
+      }
+
+      return (
+        '<div class="item ' +
+        status.className +
+        '">' +
+        '<div class="item-name">' +
+        escapeHtml(food.name) +
+        "</div>" +
+        '<div class="item-info">' +
+        escapeHtml(food.category) +
+        " ／ " +
+        escapeHtml(food.amount) +
+        "<br>" +
+        "保存：" +
+        escapeHtml(food.location) +
+        "<br>" +
+        "期限：" +
+        food.expiry +
+        "（" +
+        status.text +
+        "）" +
+        "</div>" +
+        deleteButton +
+        "</div>"
+      );
+    }
+
+    function renderUrgentFoods() {
+      const urgentList = document.getElementById("urgentList");
+      const sortedFoods = sortFoods(foods);
+
+      const urgentFoods = sortedFoods.filter(function(food) {
+        return getDaysLeft(food.expiry) <= 7;
+      });
+
+      if (urgentFoods.length === 0) {
+        urgentList.innerHTML =
+          '<div class="empty">7日以内に期限が来る食材はありません</div>';
+        return;
+      }
+
+      urgentList.innerHTML = urgentFoods
+        .slice(0, 5)
+        .map(function(food) {
+          return createFoodHtml(food, false);
+        })
+        .join("");
+    }
+
+    function renderStock() {
+      const stockList = document.getElementById("stockList");
+      const sortedFoods = sortFoods(foods);
+
+      if (sortedFoods.length === 0) {
+        stockList.innerHTML =
+          '<div class="empty">まだ食材が登録されていません</div>';
+        return;
+      }
+
+      stockList.innerHTML = sortedFoods
+        .map(function(food) {
+          return createFoodHtml(food, true);
+        })
+        .join("");
+    }
+
+    function renderCategories() {
+      const categoryList = document.getElementById("categoryList");
+      const categories = {};
+
+      sortFoods(foods).forEach(function(food) {
+        if (!categories[food.category]) {
+          categories[food.category] = [];
+        }
+
+        categories[food.category].push(food);
+      });
+
+      const categoryNames = Object.keys(categories);
+
+      if (categoryNames.length === 0) {
+        categoryList.innerHTML =
+          '<div class="empty">食材を登録するとカテゴリー別に表示されます</div>';
+        return;
+      }
+
+      categoryList.innerHTML = categoryNames
+        .map(function(category) {
+          const items = categories[category]
+            .map(function(food) {
+              return createFoodHtml(food, false);
+            })
+            .join("");
+
+          return (
+            '<div class="card">' +
+            "<h2>" +
+            escapeHtml(category) +
+            "</h2>" +
+            items +
+            "</div>"
+          );
+        })
+        .join("");
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    renderUrgentFoods();
+  </script>
 </body>
 </html>
