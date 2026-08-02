@@ -1808,7 +1808,34 @@
 
       return year + "-" + month + "-" + day;
     }
+function setDefaultUnitByCategory() {
+    const category = document.getElementById("foodCategory").value;
+    const unit = document.getElementById("foodUnit");
 
+    switch (category) {
+        case "肉":
+        case "魚":
+            unit.value = "g";
+            break;
+
+        case "卵・乳製品":
+            unit.value = "個";
+            break;
+
+        case "野菜":
+        case "果物":
+            unit.value = "個";
+            break;
+
+        case "飲み物":
+            unit.value = "ml";
+            break;
+
+        default:
+            unit.value = "個";
+            break;
+    }
+}
     function escapeHtml(value) {
       return String(value ?? "")
         .replaceAll("&", "&amp;")
