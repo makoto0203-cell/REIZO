@@ -2051,16 +2051,33 @@ function autoSelectFoodCategory() {
       return foodName.includes(name.toLowerCase());
     });
 
-  if (!matchedVegetable) {
+  if (matchedVegetable) {
+    document.getElementById("foodCategory").value = "野菜";
+
+    setDefaultUnitByCategory();
+
+    document.getElementById("foodType").value =
+      vegetableDatabase[matchedVegetable];
+
     return;
   }
 
-  document.getElementById("foodCategory").value = "野菜";
+  const matchedMeat = Object.keys(meatDatabase)
+    .sort(function(a, b) {
+      return b.length - a.length;
+    })
+    .find(function(name) {
+      return foodName.includes(name.toLowerCase());
+    });
 
-  setDefaultUnitByCategory();
+  if (matchedMeat) {
+    document.getElementById("foodCategory").value = "肉";
 
-  document.getElementById("foodType").value =
-    vegetableDatabase[matchedVegetable];
+    setDefaultUnitByCategory();
+
+    document.getElementById("foodType").value =
+      meatDatabase[matchedMeat];
+  }
 }
 function setDefaultUnitByCategory() {
     const category = document.getElementById("foodCategory").value;
