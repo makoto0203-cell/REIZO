@@ -2216,7 +2216,6 @@ function autoSelectFoodCategory() {
 
   if (matchedVegetable) {
     document.getElementById("foodCategory").value = "野菜";
-
     setDefaultUnitByCategory();
 
     document.getElementById("foodType").value =
@@ -2235,11 +2234,28 @@ function autoSelectFoodCategory() {
 
   if (matchedMeat) {
     document.getElementById("foodCategory").value = "肉";
-
     setDefaultUnitByCategory();
 
     document.getElementById("foodType").value =
       meatDatabase[matchedMeat];
+
+    return;
+  }
+
+  const matchedFish = Object.keys(fishDatabase)
+    .sort(function(a, b) {
+      return b.length - a.length;
+    })
+    .find(function(name) {
+      return foodName.includes(name.toLowerCase());
+    });
+
+  if (matchedFish) {
+    document.getElementById("foodCategory").value = "魚";
+    setDefaultUnitByCategory();
+
+    document.getElementById("foodType").value =
+      fishDatabase[matchedFish];
   }
 }
 function setDefaultUnitByCategory() {
