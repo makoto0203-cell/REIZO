@@ -1780,6 +1780,7 @@ function autoSelectSeasoningType() {
           location: location,
           expiry: expiry,
           note: note,
+          buyNext: false,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         });
@@ -1827,7 +1828,26 @@ function autoSelectSeasoningType() {
       renderHome();
       showToast("調味料を削除しました");
     }
+function toggleBuyNext(id) {
+  const seasoning = seasonings.find(function(item) {
+    return item.id === id;
+  });
 
+  if (!seasoning) {
+    return;
+  }
+
+  seasoning.buyNext = !seasoning.buyNext;
+
+  saveSeasonings();
+  renderSeasonings();
+
+  showToast(
+    seasoning.buyNext
+      ? "買い物リストに追加しました"
+      : "買い物リストから外しました"
+  );
+}
     function renderSeasonings() {
       const seasoningList =
         document.getElementById("seasoningList");
@@ -1915,6 +1935,7 @@ function autoSelectSeasoningType() {
             '<button class="small-button" type="button" onclick="editSeasoning(' +
             seasoning.id +
             ')">編集</button>' +
+            '<button class="small-button" type="button" onclick="toggleBuyNext(' + seasoning.id + ')">' + (seasoning.buyNext ? "✅🛒" : "🛒") + '</button>' +
             '<button class="small-button" type="button">🛒</button>' +
             '<button class="small-button delete" type="button" onclick="deleteSeasoning(' +
             seasoning.id +
