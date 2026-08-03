@@ -1653,7 +1653,33 @@
 
       showScreen("seasoningFormScreen");
     }
+function autoSelectSeasoningType() {
+  const seasoningName = document
+    .getElementById("seasoningName")
+    .value
+    .replace(/\s+/g, "")
+    .toLowerCase();
 
+  const seasoningType =
+    document.getElementById("seasoningType");
+
+  if (!seasoningName) {
+    seasoningType.value = "";
+    return;
+  }
+
+  const matchedSeasoning = Object.keys(seasoningDatabase)
+    .sort(function(a, b) {
+      return b.length - a.length;
+    })
+    .find(function(name) {
+      return seasoningName.includes(name.toLowerCase());
+    });
+
+  seasoningType.value = matchedSeasoning
+    ? seasoningDatabase[matchedSeasoning]
+    : "";
+}
     function saveSeasoningFromForm() {
       const editingId =
         document.getElementById("editingSeasoningId").value;
