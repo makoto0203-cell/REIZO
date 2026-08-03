@@ -1495,16 +1495,20 @@ urgentList.innerHTML =
         : "";
 
       const actionHtml = showActions
-        ? '<div class="item-actions">' +
-          '<button class="small-button" type="button" onclick="editFood(' +
-          food.id +
-          ')">編集</button>' +
-          '<button class="small-button" type="button">🛒</button>' +
-          '<button class="small-button delete" type="button" onclick="deleteFood(' +
-          food.id +
-          ')">削除</button>' +
-          "</div>"
-        : "";
+  ? '<div class="item-actions">' +
+    '<button class="small-button" type="button" onclick="editFood(' +
+    food.id +
+    ')">編集</button>' +
+    '<button class="small-button" type="button">🛒</button>' +
+    '<button class="small-button delete" type="button" onclick="deleteFood(' +
+    food.id +
+    ')">削除</button>' +
+    "</div>"
+  : showCartOnly
+  ? '<div class="item-actions">' +
+    '<button class="small-button" type="button">🛒</button>' +
+    "</div>"
+  : "";
 
       return (
         '<article class="food-item ' +
