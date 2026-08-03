@@ -2694,7 +2694,16 @@ if (foodTypes[category]) {
         toast.classList.remove("show");
       }, 2200);
     }
+function showShoppingList() {
+    showScreen("seasoningScreen");
 
+    setTimeout(function () {
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
+    }, 100);
+}
     renderHome();
   </script>
 </body>
