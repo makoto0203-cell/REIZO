@@ -1091,7 +1091,10 @@
       document.getElementById("totalCount").textContent = foods.length;
       document.getElementById("seasoningCount").textContent =
         seasonings.length;
-
+document.getElementById("shoppingCount").textContent =
+  seasonings.filter(function(item) {
+    return item.buyNext;
+  }).length + "件";
       const urgentFoods = sortFoodsByExpiry(foods).filter(function(food) {
         return getDaysLeft(food.expiry) <= 3;
       });
