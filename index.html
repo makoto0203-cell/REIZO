@@ -2402,6 +2402,22 @@ function autoSelectFoodCategory() {
       dairyDatabase[matchedDairy];
   }
 }
+const matchedStaple = Object.keys(stapleDatabase)
+  .sort(function(a, b) {
+    return b.length - a.length;
+  })
+  .find(function(name) {
+    return foodName.includes(name.toLowerCase());
+  });
+
+if (matchedStaple) {
+  document.getElementById("foodCategory").value = "主食";
+
+  setDefaultUnitByCategory();
+
+  document.getElementById("foodType").value =
+    stapleDatabase[matchedStaple];
+}
 function setDefaultUnitByCategory() {
     const category = document.getElementById("foodCategory").value;
     const unit = document.getElementById("foodUnit");
