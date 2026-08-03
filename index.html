@@ -1480,7 +1480,7 @@ urgentList.innerHTML =
         .join("");
     }
 
-    function createFoodHtml(food, showActions) {
+    function createFoodHtml(food, showActions, showCartOnly) {
       const daysLeft = getDaysLeft(food.expiry);
       const status = getFoodStatus(daysLeft);
       const amountText = createAmountText(food);
