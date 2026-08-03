@@ -1124,18 +1124,7 @@
 });
 
 urgentList.innerHTML =
-    shoppingSeasonings.length > 0
-    ? `
-        <article class="food-card">
-            <h3>🛒 次回購入　${shoppingSeasonings.length}件</h3>
-        </article>
-      `
-    : `
-        <article class="food-card">
-            <h3>🛒 次回購入　0件</h3>
-        </article>
-      `
-    +
+
     displayFoods
         .slice(0, 3)
         .map(function(food) {
