@@ -2431,22 +2431,7 @@ if (matchedStaple) {
   document.getElementById("foodType").value =
     stapleDatabase[matchedStaple];
 }
-const matchedSeasoning = Object.keys(seasoningDatabase)
-    .sort(function(a, b) {
-        return b.length - a.length;
-    })
-    .find(function(name) {
-        return foodName.includes(name.toLowerCase());
-    });
 
-if (matchedSeasoning) {
-    document.getElementById("foodCategory").value = "調味料";
-
-    document.getElementById("seasoningType").value =
-        seasoningDatabase[matchedSeasoning];
-
-    return;
-}
 }
 function setDefaultUnitByCategory() {
     const category = document.getElementById("foodCategory").value;
