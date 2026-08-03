@@ -1112,10 +1112,25 @@
         return;
       }
 
-      urgentList.innerHTML = displayFoods
+      const shoppingSeasonings = seasonings.filter(function(item) {
+    return item.buyNext;
+});
+
+urgentList.innerHTML =
+    shoppingSeasonings
+        .map(function(item) {
+            return `
+                <article class="food-card">
+                    <h3>🛒 ${escapeHtml(item.name)}</h3>
+                    <p>次回購入</p>
+                </article>
+            `;
+        })
+        .join("") +
+    displayFoods
         .slice(0, 3)
         .map(function(food) {
-          return createFoodHtml(food, false);
+            return createFoodHtml(food, false);
         })
         .join("");
     }
