@@ -2334,6 +2334,22 @@ function autoSelectFoodCategory() {
     document.getElementById("foodType").value =
       drinkDatabase[matchedDrink];
   }
+  const matchedDairy = Object.keys(dairyDatabase)
+    .sort(function(a, b) {
+      return b.length - a.length;
+    })
+    .find(function(name) {
+      return foodName.includes(name.toLowerCase());
+    });
+
+  if (matchedDairy) {
+    document.getElementById("foodCategory").value = "卵・乳製品";
+
+    setDefaultUnitByCategory();
+
+    document.getElementById("foodType").value =
+      dairyDatabase[matchedDairy];
+  }
 }
 function setDefaultUnitByCategory() {
     const category = document.getElementById("foodCategory").value;
