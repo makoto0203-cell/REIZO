@@ -2401,7 +2401,7 @@ function autoSelectFoodCategory() {
     document.getElementById("foodType").value =
       dairyDatabase[matchedDairy];
   }
-}
+
 const matchedStaple = Object.keys(stapleDatabase)
   .sort(function(a, b) {
     return b.length - a.length;
@@ -2417,6 +2417,7 @@ if (matchedStaple) {
 
   document.getElementById("foodType").value =
     stapleDatabase[matchedStaple];
+}
 }
 function setDefaultUnitByCategory() {
     const category = document.getElementById("foodCategory").value;
