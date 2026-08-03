@@ -2260,6 +2260,22 @@ function autoSelectFoodCategory() {
     document.getElementById("foodType").value =
       fishDatabase[matchedFish];
   }
+  const matchedDrink = Object.keys(drinkDatabase)
+    .sort(function(a, b) {
+      return b.length - a.length;
+    })
+    .find(function(name) {
+      return foodName.includes(name.toLowerCase());
+    });
+
+  if (matchedDrink) {
+    document.getElementById("foodCategory").value = "飲み物";
+
+    setDefaultUnitByCategory();
+
+    document.getElementById("foodType").value =
+      drinkDatabase[matchedDrink];
+  }
 }
 function setDefaultUnitByCategory() {
     const category = document.getElementById("foodCategory").value;
