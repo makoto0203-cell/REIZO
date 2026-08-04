@@ -818,16 +818,16 @@
             <label for="foodCategory">カテゴリー</label>
 
             <select id="foodCategory" onchange="handleManualCategoryChange()">
-              <option value="肉">肉</option>
-              <option value="魚">魚</option>
-              <option value="野菜">野菜</option>
-              <option value="果物">果物</option>
-              <option value="卵・乳製品">卵・乳製品</option>
-              <option value="主食">主食</option>
-              <option value="飲み物">飲み物</option>
-              <option value="冷凍食品">冷凍食品</option>
-              <option value="加工食品">加工食品</option>
-              <option value="その他">その他</option>
+              <option value="肉">🥩 肉</option>
+              <option value="魚">🐟 魚</option>
+              <option value="野菜">🥬 野菜</option>
+              <option value="果物">🍎 果物</option>
+              <option value="卵・乳製品">🥚 卵・乳製品</option>
+              <option value="主食">🍚 主食</option>
+              <option value="飲み物">🥤 飲み物</option>
+              <option value="冷凍食品">🧊 冷凍食品</option>
+              <option value="加工食品">🍱 加工食品</option>
+              <option value="その他">📦 その他</option>
             </select>
           </div>
           <div class="field" id="foodTypeField" style="display:none;">
@@ -874,6 +874,7 @@
               <option value="g">g</option>
               <option value="kg">kg</option>
               <option value="個">個</option>
+              <option value="丁">丁</option>
               <option value="本">本</option>
               <option value="房">房</option>
               <option value="束">束</option>
@@ -1078,13 +1079,13 @@
 
   <select id="seasoningType">
     <option value="">選択してください</option>
-    <option value="基本調味料">基本調味料</option>
-    <option value="ソース">ソース</option>
-    <option value="油">油</option>
-    <option value="だし">だし</option>
-    <option value="香辛料">香辛料</option>
-    <option value="ドレッシング">ドレッシング</option>
-    <option value="その他">その他</option>
+    <option value="基本調味料">🧂 基本調味料</option>
+    <option value="ソース">🥫 ソース</option>
+    <option value="油">🫗 油</option>
+    <option value="だし">🍲 だし</option>
+    <option value="香辛料">🌶️ 香辛料</option>
+    <option value="ドレッシング">🥗 ドレッシング</option>
+    <option value="その他">📦 その他</option>
   </select>
 </div>
         <div class="two-columns">
@@ -1487,6 +1488,8 @@ urgentList.innerHTML =
       document.getElementById("drinkVariantLearningKey").value = "";
       foodCategoryManuallyChanged = false;
       foodTypeManuallyChanged = false;
+      foodUnitManuallyChanged = false;
+      foodLocationManuallyChanged = false;
       updateAutoDetectNote("");
     }
 
@@ -1570,7 +1573,7 @@ function toggleShoppingItem(id) {
             '" type="button" onclick="setStockCategory(\'' +
             escapeForAttribute(category) +
             "')\">" +
-            escapeHtml(category) +
+            escapeHtml(getCategoryDisplayName(category)) +
             "</button>"
           );
         })
@@ -1678,7 +1681,7 @@ function toggleShoppingItem(id) {
             '<section class="category-block">' +
             '<div class="category-heading">' +
             "<h3>" +
-            escapeHtml(category) +
+            escapeHtml(getCategoryDisplayName(category)) +
             "</h3>" +
             '<span class="category-count">' +
             categoryFoods.length +
@@ -1744,7 +1747,8 @@ food.id +
         "</span>" +
         "</div>" +
         '<div class="food-info">' +
-        escapeHtml(food.category || "その他") +
+        escapeHtml(getCategoryDisplayName(food.category || "その他")) +
+        (food.type ? " ／ " + escapeHtml(getTypeDisplayName(food.type)) : "") +
         " ／ " +
         escapeHtml(food.location || "保存場所未設定") +
         "<br>" +
@@ -2750,50 +2754,123 @@ const dairyDatabase = {
 };
 
 const stapleDatabase = {
-  // 米
-  "無洗米": "白米", "白米": "白米", "お米": "白米", "ご飯": "白米", "ごはん": "白米", "ライス": "白米", "米": "白米",
-  "玄米": "玄米", "雑穀米": "玄米", "もち米": "もち米",
-
-  // パン
-  "食パン12枚切り": "食パン", "食パン10枚切り": "食パン", "食パン8枚切り": "食パン",
-  "食パン6枚切り": "食パン", "食パン5枚切り": "食パン", "食パン4枚切り": "食パン",
-  "食パン": "食パン", "トースト": "食パン",
-  "ロールパン": "菓子パン", "クロワッサン": "菓子パン", "ベーグル": "菓子パン",
-  "フランスパン": "菓子パン", "バゲット": "菓子パン", "コッペパン": "菓子パン",
-  "菓子パン": "菓子パン", "あんぱん": "菓子パン", "アンパン": "菓子パン", "クリームパン": "菓子パン", "メロンパン": "菓子パン",
-
-  // パスタ・そば
-  "パスタ（7束）": "パスタ", "パスタ(7束)": "パスタ", "パスタ7束": "パスタ",
-  "パスタ（5束）": "パスタ", "パスタ(5束)": "パスタ", "パスタ5束": "パスタ",
-  "スパゲッティ": "パスタ", "スパゲティ": "パスタ", "パスタ": "パスタ",
-  "そば（7束）": "そば", "そば(7束)": "そば", "そば7束": "そば",
-  "そば（5束）": "そば", "そば(5束)": "そば", "そば5束": "そば",
-  "乾麺そば": "そば", "蕎麦": "そば", "そば": "そば",
-
-  // うどん・焼きそば
-  "冷凍うどん（5食）": "うどん", "冷凍うどん(5食)": "うどん", "冷凍うどん5食": "うどん",
-  "うどん（5食）": "うどん", "うどん(5食)": "うどん", "うどん5食": "うどん",
-  "うどん（3食）": "うどん", "うどん(3食)": "うどん", "うどん3食": "うどん",
-  "うどん（1食）": "うどん", "うどん(1食)": "うどん", "うどん1食": "うどん",
-  "乾麺うどん": "うどん", "冷凍うどん": "うどん", "うどん": "うどん",
-  "焼きそば（3食）": "焼きそば", "焼きそば(3食)": "焼きそば", "焼きそば3食": "焼きそば",
-  "焼きそば（1食）": "焼きそば", "焼きそば(1食)": "焼きそば", "焼きそば1食": "焼きそば",
-  "やきそば": "焼きそば", "焼きそば": "焼きそば",
-
-  // ラーメン
-  "サッポロ一番（5食）": "ラーメン", "サッポロ一番(5食)": "ラーメン", "サッポロ一番": "ラーメン",
-  "チキンラーメン（5食）": "ラーメン", "チキンラーメン(5食)": "ラーメン", "チキンラーメン": "ラーメン",
-  "辛ラーメン（5食）": "ラーメン", "辛ラーメン(5食)": "ラーメン", "辛ラーメン": "ラーメン",
-  "マルちゃん正麺（5食）": "ラーメン", "マルちゃん正麺(5食)": "ラーメン", "マルちゃん正麺": "ラーメン",
-  "チャルメラ（5食）": "ラーメン", "チャルメラ(5食)": "ラーメン", "チャルメラ": "ラーメン",
-  "ラ王（3食）": "ラーメン", "ラ王(3食)": "ラーメン", "ラ王": "ラーメン",
-  "カップヌードル": "ラーメン", "カップ麺": "ラーメン", "カップラーメン": "ラーメン",
-  "どん兵衛": "ラーメン", "u.f.o.": "ラーメン", "ufo": "ラーメン", "一平ちゃん": "ラーメン", "ペヤング": "ラーメン",
-  "袋麺": "ラーメン", "インスタントラーメン": "ラーメン", "中華麺": "ラーメン", "ラーメン": "ラーメン",
-
-  // その他の主食
-  "そうめん": "そうめん", "素麺": "そうめん"
+  "白米": "白米", "ご飯": "白米", "ごはん": "白米", "ライス": "白米", "米": "白米",
+  "玄米": "玄米", "もち米": "もち米", "食パン": "食パン", "トースト": "食パン",
+  "菓子パン": "菓子パン", "あんぱん": "菓子パン", "アンパン": "菓子パン", "クリームパン": "菓子パン",
+  "メロンパン": "菓子パン", "クロワッサン": "菓子パン", "ロールパン": "菓子パン",
+  "パスタ": "パスタ", "スパゲッティ": "パスタ", "スパゲティ": "パスタ",
+  "うどん": "うどん", "そば": "そば", "蕎麦": "そば", "そうめん": "そうめん", "素麺": "そうめん",
+  "ラーメン": "ラーメン", "中華麺": "ラーメン", "焼きそば": "焼きそば", "やきそば": "焼きそば"
 };
+
+const processedFoodDatabase = {
+  // 缶詰・瓶詰
+  "ツナ缶（4缶）": { type: "缶詰・瓶詰", unit: "パック", location: "常温" },
+  "ツナ缶(4缶)": { type: "缶詰・瓶詰", unit: "パック", location: "常温" },
+  "ツナ缶（3缶）": { type: "缶詰・瓶詰", unit: "パック", location: "常温" },
+  "ツナ缶(3缶)": { type: "缶詰・瓶詰", unit: "パック", location: "常温" },
+  "ツナ缶": { type: "缶詰・瓶詰", unit: "個", location: "常温" },
+  "シーチキン": { type: "缶詰・瓶詰", unit: "個", location: "常温" },
+  "さば缶": { type: "缶詰・瓶詰", unit: "個", location: "常温" },
+  "サバ缶": { type: "缶詰・瓶詰", unit: "個", location: "常温" },
+  "鯖缶": { type: "缶詰・瓶詰", unit: "個", location: "常温" },
+  "コーン缶": { type: "缶詰・瓶詰", unit: "個", location: "常温" },
+  "焼き鳥缶": { type: "缶詰・瓶詰", unit: "個", location: "常温" },
+  "やきとり缶": { type: "缶詰・瓶詰", unit: "個", location: "常温" },
+  "フルーツ缶": { type: "缶詰・瓶詰", unit: "個", location: "常温" },
+  "ごはんですよ": { type: "缶詰・瓶詰", unit: "個", location: "常温" },
+  "なめ茸": { type: "缶詰・瓶詰", unit: "個", location: "常温" },
+  "鮭フレーク": { type: "缶詰・瓶詰", unit: "個", location: "常温" },
+  "缶詰": { type: "缶詰・瓶詰", unit: "個", location: "常温" },
+  "瓶詰": { type: "缶詰・瓶詰", unit: "個", location: "常温" },
+
+  // レトルト
+  "レトルトカレー": { type: "レトルト", unit: "個", location: "常温" },
+  "ハヤシライス": { type: "レトルト", unit: "個", location: "常温" },
+  "レトルト牛丼": { type: "レトルト", unit: "個", location: "常温" },
+  "レトルト親子丼": { type: "レトルト", unit: "個", location: "常温" },
+  "レトルト中華丼": { type: "レトルト", unit: "個", location: "常温" },
+  "パスタソース": { type: "レトルト", unit: "個", location: "常温" },
+  "レトルト食品": { type: "レトルト", unit: "個", location: "常温" },
+  "レトルト": { type: "レトルト", unit: "個", location: "常温" },
+
+  // 加工肉
+  "スライスハム": { type: "加工肉", unit: "パック", location: "冷蔵" },
+  "生ハム": { type: "加工肉", unit: "パック", location: "冷蔵" },
+  "3連ハム": { type: "加工肉", unit: "束", location: "冷蔵" },
+  "三連ハム": { type: "加工肉", unit: "束", location: "冷蔵" },
+  "ベーコン": { type: "加工肉", unit: "パック", location: "冷蔵" },
+  "ウインナー": { type: "加工肉", unit: "袋", location: "冷蔵" },
+  "ウィンナー": { type: "加工肉", unit: "袋", location: "冷蔵" },
+  "ソーセージ": { type: "加工肉", unit: "袋", location: "冷蔵" },
+  "ハム": { type: "加工肉", unit: "パック", location: "冷蔵" },
+
+  // 練り物
+  "ちくわ": { type: "練り物", unit: "パック", location: "冷蔵" },
+  "竹輪": { type: "練り物", unit: "パック", location: "冷蔵" },
+  "かまぼこ": { type: "練り物", unit: "パック", location: "冷蔵" },
+  "蒲鉾": { type: "練り物", unit: "パック", location: "冷蔵" },
+  "はんぺん": { type: "練り物", unit: "パック", location: "冷蔵" },
+  "なると": { type: "練り物", unit: "パック", location: "冷蔵" },
+  "ナルト": { type: "練り物", unit: "パック", location: "冷蔵" },
+  "さつま揚げ": { type: "練り物", unit: "パック", location: "冷蔵" },
+
+  // 大豆食品
+  "ミニ豆腐（4個入り）": { type: "大豆食品", unit: "パック", location: "冷蔵" },
+  "ミニ豆腐(4個入り)": { type: "大豆食品", unit: "パック", location: "冷蔵" },
+  "ミニ豆腐": { type: "大豆食品", unit: "パック", location: "冷蔵" },
+  "木綿豆腐": { type: "大豆食品", unit: "丁", location: "冷蔵" },
+  "絹ごし豆腐": { type: "大豆食品", unit: "丁", location: "冷蔵" },
+  "絹豆腐": { type: "大豆食品", unit: "丁", location: "冷蔵" },
+  "豆腐": { type: "大豆食品", unit: "丁", location: "冷蔵" },
+  "納豆（3個入り）": { type: "大豆食品", unit: "パック", location: "冷蔵" },
+  "納豆(3個入り)": { type: "大豆食品", unit: "パック", location: "冷蔵" },
+  "納豆": { type: "大豆食品", unit: "パック", location: "冷蔵" },
+  "油揚げ": { type: "大豆食品", unit: "パック", location: "冷蔵" },
+  "厚揚げ": { type: "大豆食品", unit: "パック", location: "冷蔵" },
+  "こんにゃく": { type: "大豆食品", unit: "袋", location: "冷蔵" },
+  "蒟蒻": { type: "大豆食品", unit: "袋", location: "冷蔵" },
+
+  // 漬物
+  "キムチ": { type: "漬物", unit: "パック", location: "冷蔵" },
+  "たくあん": { type: "漬物", unit: "パック", location: "冷蔵" },
+  "沢庵": { type: "漬物", unit: "パック", location: "冷蔵" },
+  "浅漬け": { type: "漬物", unit: "パック", location: "冷蔵" },
+  "漬物": { type: "漬物", unit: "パック", location: "冷蔵" }
+};
+
+const categoryDisplayNames = {
+  "肉": "🥩 肉",
+  "魚": "🐟 魚",
+  "野菜": "🥬 野菜",
+  "果物": "🍎 果物",
+  "卵・乳製品": "🥚 卵・乳製品",
+  "主食": "🍚 主食",
+  "飲み物": "🥤 飲み物",
+  "冷凍食品": "🧊 冷凍食品",
+  "加工食品": "🍱 加工食品",
+  "その他": "📦 その他",
+  "すべて": "📋 すべて"
+};
+
+const typeDisplayNames = {
+  "鶏肉": "🐓 鶏肉", "豚肉": "🐖 豚肉", "牛肉": "🐄 牛肉", "牛豚合い挽き": "🥩 牛豚合い挽き", "ジビエ": "🦌 ジビエ",
+  "鮭": "🐟 鮭", "マグロ": "🐟 マグロ", "サバ": "🐟 サバ", "アジ": "🐟 アジ", "ブリ": "🐟 ブリ", "カツオ": "🐟 カツオ", "タイ": "🐟 タイ", "イワシ": "🐟 イワシ", "サンマ": "🐟 サンマ", "タラ": "🐟 タラ", "カレイ": "🐟 カレイ", "ヒラメ": "🐟 ヒラメ", "うなぎ": "🐟 うなぎ", "エビ": "🦐 エビ", "カニ": "🦀 カニ", "イカ": "🦑 イカ", "タコ": "🐙 タコ", "貝類": "🐚 貝類", "刺身": "🍣 刺身",
+  "葉物": "🥬 葉物", "根菜": "🥕 根菜", "実野菜": "🍅 実野菜", "花野菜": "🥦 花野菜", "茎野菜": "🌱 茎野菜", "香味野菜": "🌿 香味野菜", "豆類": "🫛 豆類", "きのこ": "🍄 きのこ",
+  "卵": "🥚 卵", "チーズ": "🧀 チーズ", "ヨーグルト": "🥣 ヨーグルト", "バター": "🧈 バター", "生クリーム": "🥛 生クリーム",
+  "白米": "🍚 白米", "玄米": "🌾 玄米", "もち米": "🍚 もち米", "食パン": "🍞 食パン", "菓子パン": "🥐 菓子パン", "パスタ": "🍝 パスタ", "うどん": "🍜 うどん", "そば": "🥢 そば", "そうめん": "🥢 そうめん", "ラーメン": "🍜 ラーメン", "焼きそば": "🍜 焼きそば",
+  "水": "💧 水", "お茶": "🍵 お茶", "コーヒー": "☕ コーヒー", "牛乳": "🥛 牛乳", "ジュース": "🧃 ジュース", "炭酸飲料": "🥤 炭酸飲料", "お酒": "🍺 お酒", "スポーツドリンク": "🏃 スポーツドリンク", "豆乳": "🌱 豆乳",
+  "缶詰・瓶詰": "🥫 缶詰・瓶詰", "レトルト": "🍛 レトルト", "加工肉": "🥓 加工肉", "練り物": "🍥 練り物", "大豆食品": "🫘 大豆食品", "漬物": "🥒 漬物",
+  "その他": "📦 その他"
+};
+
+function getCategoryDisplayName(category) {
+  return categoryDisplayNames[category] || category || "📦 その他";
+}
+
+function getTypeDisplayName(type) {
+  return typeDisplayNames[type] || type || "";
+}
 
 const foodTypes = {
   "肉": ["鶏肉", "豚肉", "牛肉", "牛豚合い挽き", "ジビエ"],
@@ -2802,12 +2879,13 @@ const foodTypes = {
   "果物": ["りんご", "バナナ", "みかん", "オレンジ", "甘夏", "はっさく", "伊予柑", "デコポン", "ポンカン", "グレープフルーツ", "レモン", "ライム", "ゆず", "すだち", "かぼす", "ぶどう", "いちご", "キウイ", "桃", "梨", "洋梨", "柿", "さくらんぼ", "スイカ", "メロン", "パイナップル", "マンゴー", "ドラゴンフルーツ", "パパイヤ", "ブルーベリー", "ラズベリー", "ブラックベリー", "びわ", "いちじく", "すもも", "プルーン", "ざくろ", "栗", "ココナッツ", "その他"],
   "卵・乳製品": ["卵", "チーズ", "ヨーグルト", "バター", "生クリーム", "その他"],
   "主食": ["白米", "玄米", "もち米", "食パン", "菓子パン", "パスタ", "うどん", "そば", "そうめん", "ラーメン", "焼きそば", "その他"],
-  "加工食品": ["豆腐", "納豆", "ハム", "ベーコン", "ソーセージ", "ちくわ", "かまぼこ", "キムチ", "漬物", "缶詰", "レトルト食品", "その他"],
+  "加工食品": ["缶詰・瓶詰", "レトルト", "加工肉", "練り物", "大豆食品", "漬物", "その他"],
   "飲み物": ["水", "お茶", "コーヒー", "牛乳", "ジュース", "炭酸飲料", "お酒", "スポーツドリンク", "豆乳", "その他"]
 };
 
 const foodDatabaseGroups = [
   { category: "飲み物", data: drinkDatabase },
+  { category: "加工食品", data: processedFoodDatabase },
   { category: "果物", data: fruitDatabase },
   { category: "野菜", data: vegetableDatabase },
   { category: "肉", data: meatDatabase },
@@ -2883,7 +2961,7 @@ function autoSelectFoodCategory() {
   if (!foodLocationManuallyChanged) {
     document.getElementById("foodLocation").value = getLearnedLocation(foodName) || match.location;
   }
-  updateAutoDetectNote(match.category + " ＞ " + match.type + "として判定しました");
+  updateAutoDetectNote(getCategoryDisplayName(match.category) + " ＞ " + getTypeDisplayName(match.type) + "として判定しました");
   renderFoodInputSuggestions();
 }
 
@@ -2919,6 +2997,7 @@ function getDefaultUnitForCategory(category) {
   if (category === "肉" || category === "魚") return "g";
   if (category === "飲み物") return "ml";
   if (category === "主食") return "袋";
+  if (category === "加工食品") return "個";
   return "個";
 }
 
@@ -2943,7 +3022,7 @@ function setDefaultUnitByCategory(preserveCurrentValues) {
     foodTypes[category].forEach(function(item) {
       const option = document.createElement("option");
       option.value = item;
-      option.textContent = item;
+      option.textContent = getTypeDisplayName(item);
       foodType.appendChild(option);
     });
     if (preserveCurrentValues && foodTypes[category].includes(previousType)) {
@@ -3112,7 +3191,7 @@ function applyDrinkVariant(name, capacity, type) {
   document.getElementById("foodUnit").value = "本";
   foodUnitManuallyChanged = true;
   foodLocationManuallyChanged = true;
-  updateAutoDetectNote("飲み物 ＞ " + type + "として判定しました");
+  updateAutoDetectNote(getCategoryDisplayName("飲み物") + " ＞ " + getTypeDisplayName(type) + "として判定しました");
   renderFoodInputSuggestions();
 }
 
@@ -3192,8 +3271,8 @@ function syncFoodLearningToggle() {
   if (checkbox) checkbox.checked = foodLearningEnabled;
 }
 
-function makeAmountCandidate(amount, unit) {
-  return { amount: String(amount), unit: unit, label: String(amount) + unit };
+function makeAmountCandidate(amount, unit, label) {
+  return { amount: String(amount), unit: unit, label: label || (String(amount) + unit) };
 }
 
 function getBaseAmountCandidates() {
@@ -3321,91 +3400,89 @@ function getBaseAmountCandidates() {
     ];
   }
 
-  // 主食：購入時の販売形態を優先して数量候補を表示する。
-  if (category === "主食") {
-    // 米はkg管理。合単位はVer1では使用しない。
-    if (
-      type === "白米" || type === "玄米" || type === "もち米" ||
-      name.includes("無洗米") || name.includes("白米") || name.includes("玄米") ||
-      name.includes("雑穀米") || name.includes("もち米") || name === "米" || name === "お米"
-    ) {
-      return [1, 2, 5, 10].map(function(value) {
-        return makeAmountCandidate(value, "kg");
-      });
-    }
-
-    // 食パンは○枚切りを商品名に持たせ、購入数は袋で管理する。
-    if (type === "食パン" || name.includes("食パン") || name.includes("トースト")) {
-      return [1, 2].map(function(value) {
-        return makeAmountCandidate(value, "袋");
-      });
-    }
-
-    // 袋販売が一般的なパン。
-    if (
-      name.includes("ロールパン") || name.includes("クロワッサン") ||
-      name.includes("ベーグル")
-    ) {
-      return [1, 2].map(function(value) {
-        return makeAmountCandidate(value, "袋");
-      });
-    }
-
-    // 長いパンは本、コッペパンは個で管理する。
-    if (name.includes("フランスパン") || name.includes("バゲット")) {
-      return [1, 2].map(function(value) {
-        return makeAmountCandidate(value, "本");
-      });
-    }
-
-    if (name.includes("コッペパン")) {
-      return [1, 2, 3].map(function(value) {
-        return makeAmountCandidate(value, "個");
-      });
-    }
-
-    // その他の菓子パンは個売りを基本とする。
-    if (type === "菓子パン") {
-      return [1, 2, 3].map(function(value) {
-        return makeAmountCandidate(value, "個");
-      });
-    }
-
-    // パスタ・そばは束数を商品名に持たせ、購入数は袋で管理する。
-    if (type === "パスタ" || type === "そば" || name.includes("パスタ") || name.includes("スパゲ") || name.includes("そば") || name.includes("蕎麦")) {
-      return [1, 2].map(function(value) {
-        return makeAmountCandidate(value, "袋");
-      });
-    }
-
-    // うどん・焼きそばは○食を商品名に持たせ、購入数は袋で管理する。
-    if (type === "うどん" || type === "焼きそば" || name.includes("うどん") || name.includes("焼きそば") || name.includes("やきそば")) {
-      return [1, 2].map(function(value) {
-        return makeAmountCandidate(value, "袋");
-      });
-    }
-
-    // カップ麺は個、袋麺は袋で管理する。
-    if (
-      name.includes("カップヌードル") || name.includes("カップ麺") ||
-      name.includes("カップラーメン") || name.includes("どん兵衛") ||
-      name.includes("u.f.o") || name.includes("ufo") ||
-      name.includes("一平ちゃん") || name.includes("ペヤング")
-    ) {
+  // 加工食品：スーパーで購入した販売単位を優先する。
+  if (category === "加工食品") {
+    if (type === "缶詰・瓶詰") {
+      if (
+        name.includes("ツナ缶（3缶）") || name.includes("ツナ缶(3缶)") ||
+        name.includes("ツナ缶（4缶）") || name.includes("ツナ缶(4缶)") ||
+        name.includes("3缶") || name.includes("4缶")
+      ) {
+        return [1, 2].map(function(value) {
+          return makeAmountCandidate(value, "パック");
+        });
+      }
       return [1, 2, 3, 5].map(function(value) {
         return makeAmountCandidate(value, "個");
       });
     }
 
-    if (type === "ラーメン" || name.includes("ラーメン") || name.includes("袋麺") || name.includes("中華麺")) {
-      return [1, 2].map(function(value) {
-        return makeAmountCandidate(value, "袋");
+    if (type === "レトルト") {
+      return [1, 2, 3, 5].map(function(value) {
+        return makeAmountCandidate(value, "個");
       });
     }
 
-    // そうめん等、専用判定がない主食は袋管理を基本とする。
+    if (type === "加工肉") {
+      if (name.includes("3連ハム") || name.includes("三連ハム")) {
+        return [
+          makeAmountCandidate(1, "束", "1束（3連）"),
+          makeAmountCandidate(2, "束", "2束（3連）")
+        ];
+      }
+      if (name.includes("ウインナー") || name.includes("ウィンナー") || name.includes("ソーセージ")) {
+        return [1, 2].map(function(value) {
+          return makeAmountCandidate(value, "袋");
+        });
+      }
+      return [1, 2].map(function(value) {
+        return makeAmountCandidate(value, "パック");
+      });
+    }
+
+    if (type === "練り物") {
+      return [1, 2].map(function(value) {
+        return makeAmountCandidate(value, "パック");
+      });
+    }
+
+    if (type === "大豆食品") {
+      if (name.includes("ミニ豆腐")) {
+        return [
+          makeAmountCandidate(1, "パック", "1パック（4個入り）"),
+          makeAmountCandidate(2, "パック", "2パック（4個入り）")
+        ];
+      }
+      if (name.includes("木綿豆腐") || name.includes("絹ごし豆腐") || name.includes("絹豆腐") || name === "豆腐") {
+        return [1, 2].map(function(value) {
+          return makeAmountCandidate(value, "丁");
+        });
+      }
+      if (name.includes("納豆")) {
+        return [
+          makeAmountCandidate(1, "パック", "1パック（3個入り）"),
+          makeAmountCandidate(2, "パック", "2パック（3個入り）"),
+          makeAmountCandidate(3, "パック", "3パック（3個入り）")
+        ];
+      }
+      if (name.includes("こんにゃく") || name.includes("蒟蒻")) {
+        return [1, 2].map(function(value) {
+          return makeAmountCandidate(value, "袋");
+        });
+      }
+      return [1, 2].map(function(value) {
+        return makeAmountCandidate(value, "パック");
+      });
+    }
+
+    if (type === "漬物") {
+      return [1, 2].map(function(value) {
+        return makeAmountCandidate(value, "パック");
+      });
+    }
+
     return [1, 2].map(function(value) {
-      return makeAmountCandidate(value, "袋");
+      return makeAmountCandidate(value, "個");
     });
   }
 
