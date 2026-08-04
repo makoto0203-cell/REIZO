@@ -1327,7 +1327,28 @@ urgentList.innerHTML =
       renderCategories();
       showToast("食材を削除しました");
     }
+function toggleShoppingItem(id) {
+    const food = foods.find(function(item) {
+        return item.id === id;
+    });
 
+    if (!food) {
+        return;
+    }
+
+    food.shopping = !food.shopping;
+
+    saveFoods();
+    renderHome();
+    renderStock();
+    renderCategories();
+
+    showToast(
+        food.shopping
+            ? "買い物リストに追加しました"
+            : "買い物リストから外しました"
+    );
+}
     function renderStockCategoryTabs() {
       const container =
         document.getElementById("stockCategoryTabs");
