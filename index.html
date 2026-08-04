@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -885,23 +886,7 @@
 
       <div id="categoryList"></div>
     </section>
-<!-- 次回購入 -->
-<section id="shoppingScreen" class="screen">
-    <header class="page-header">
-        <button
-            class="back-button"
-            type="button"
-            onclick="showScreen('homeScreen')"
-            aria-label="戻る"
-        >
-            ←
-        </button>
 
-        <h2>🛒 次回購入</h2>
-    </header>
-
-    <div id="shoppingFoodList"></div>
-</section>
     <!-- 調味料 -->
     <section id="seasoningScreen" class="screen">
       <header class="page-header">
@@ -1107,20 +1092,10 @@
       document.getElementById("totalCount").textContent = foods.length;
       document.getElementById("seasoningCount").textContent =
         seasonings.length;
-
-const shoppingFoodCount = foods.filter(function(food) {
-    return food.shopping;
-}).length;
-
-const shoppingSeasoningCount = seasonings.filter(function(item) {
-    return item.buyNext;
-}).length;
-
 document.getElementById("shoppingCount").textContent =
-    shoppingFoodCount + shoppingSeasoningCount + "件";
-  
-    
-
+  seasonings.filter(function(item) {
+    return item.buyNext;
+  }).length + "件";
       const urgentFoods = sortFoodsByExpiry(foods).filter(function(food) {
         return getDaysLeft(food.expiry) <= 3;
       });
@@ -1930,7 +1905,7 @@ function toggleBuyNext(id) {
         );
       });
 
-      seasoningList.innerHTML = sorte、d
+      seasoningList.innerHTML = sorted
         .map(function(seasoning) {
           let status = {
             className: "safe",
@@ -1979,7 +1954,7 @@ function toggleBuyNext(id) {
             "期限：" +
             escapeHtml(expiryText) +
             "</div>" +
-            noteHtml 
+            noteHtml +
             '<div class="item-actions">' +
             '<button class="small-button" type="button" onclick="editSeasoning(' +
             seasoning.id +
@@ -2727,61 +2702,9 @@ if (foodTypes[category]) {
         toast.classList.remove("show");
       }, 2200);
     }
-function toggleShoppingItem(id) {
-    const food = foods.find(function(item) {
-        return item.id === id;
-    });
-
-    if (!food) {
-        return;
-    }
-
-    food.shopping = !food.shopping;
-
-    saveFoods();
-    renderCategories();
-    renderHome();
-
-    showToast(
-        food.shopping
-            ? "買い物リストに追加しました"
-            : "買い物リストから外しました"
-    );
-}
-
-function renderShoppingFoodList() {
-    const shoppingFoods = foods.filter(function(food) {
-        return food.shopping;
-    });
-
-    const shoppingFoodList = document.getElementById("shoppingFoodList");
-
-    const shoppingSeasonings = seasonings.filter(function(item) {
-    return item.buyNext;
-});
-
-if (shoppingFoods.length === 0 && shoppingSeasonings.length === 0) {
-    shoppingFoodList.innerHTML = createEmptyHtml("買い物リストは空です。");
-    return;
-}
-  
-
-shoppingFoodList.innerHTML =
-    shoppingFoods
-        .map(function(food) {
-            return createFoodHtml(food, false);
-        })
-        .join("") +
-    shoppingSeasonings
-        .map(function(item) {
-            return"";
-        })
-        .join("");
-}
-
 function showShoppingList() {
-    showScreen("shoppingScreen");
-renderShoppingFoodList();
+    showScreen("seasoningScreen");
+
     setTimeout(function () {
         window.scrollTo({
             top: 0,
