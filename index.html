@@ -646,6 +646,229 @@
       margin: 0;
     }
 
+
+    /* ホーム画面：期限一覧とショートカットをコンパクト表示 */
+    #homeScreen .hero {
+      padding: 10px 8px 11px;
+    }
+
+    #homeScreen .logo {
+      font-size: 32px;
+    }
+
+    #homeScreen .subtitle {
+      margin-top: 3px;
+      font-size: 12px;
+    }
+
+    #homeScreen .summary-grid {
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    #homeScreen .summary-card {
+      padding: 10px 5px;
+      border-radius: 15px;
+    }
+
+    #homeScreen .summary-number {
+      font-size: 22px;
+    }
+
+    #homeScreen .summary-label {
+      font-size: 11px;
+    }
+
+    #homeScreen .home-shopping-card {
+      margin-bottom: 10px;
+      padding: 13px 15px;
+      cursor: pointer;
+    }
+
+    #homeScreen .home-shopping-card .section-title {
+      margin: 0;
+      font-size: 17px;
+    }
+
+    #homeScreen .home-urgent-card {
+      margin-bottom: 10px;
+      padding: 14px;
+    }
+
+    .home-urgent-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 9px;
+      margin-bottom: 7px;
+    }
+
+    .home-urgent-header .section-title {
+      margin: 0;
+      font-size: 17px;
+    }
+
+    .home-urgent-links {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      white-space: nowrap;
+    }
+
+    .home-view-all {
+      color: var(--main-dark);
+      font-size: 11px;
+      font-weight: 800;
+      text-decoration: none;
+    }
+
+    .home-urgent-list {
+      overflow: hidden;
+      border: 1px solid rgba(25, 121, 107, 0.07);
+      border-radius: 14px;
+      background: white;
+    }
+
+    .home-urgent-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto 16px;
+      align-items: center;
+      gap: 8px;
+      min-height: 55px;
+      padding: 8px 10px;
+      border: 0;
+      border-bottom: 1px solid #edf1ef;
+      color: var(--text);
+      background: white;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .home-urgent-row:last-child {
+      border-bottom: 0;
+    }
+
+    .home-urgent-row:active {
+      background: #f4faf8;
+    }
+
+    .home-urgent-main {
+      min-width: 0;
+    }
+
+    .home-urgent-topline {
+      display: flex;
+      align-items: baseline;
+      gap: 7px;
+      min-width: 0;
+    }
+
+    .home-urgent-name {
+      min-width: 0;
+      overflow: hidden;
+      font-size: 15px;
+      font-weight: 900;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .home-urgent-amount {
+      flex: 0 0 auto;
+      color: var(--subtext);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .home-urgent-meta {
+      margin-top: 3px;
+      overflow: hidden;
+      color: var(--subtext);
+      font-size: 11px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .home-status-badge {
+      padding: 5px 7px;
+      border-radius: 999px;
+      color: white;
+      background: var(--safe);
+      font-size: 10px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .home-status-badge.expired {
+      background: #333333;
+    }
+
+    .home-status-badge.today {
+      background: var(--danger);
+    }
+
+    .home-status-badge.soon {
+      background: var(--warning);
+    }
+
+    .home-status-badge.week {
+      background: var(--yellow);
+    }
+
+    .home-urgent-chevron {
+      color: #8b9794;
+      font-size: 18px;
+      font-weight: 900;
+    }
+
+    #homeScreen .home-empty {
+      padding: 15px 10px;
+      border: 1px dashed var(--border);
+      border-radius: 14px;
+      color: var(--subtext);
+      background: rgba(255, 255, 255, 0.7);
+      text-align: center;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    #homeScreen .home-shortcut-title {
+      margin: 0 0 7px 2px;
+      font-size: 13px;
+    }
+
+    #homeScreen .menu-grid {
+      gap: 8px;
+      margin-bottom: 9px;
+    }
+
+    #homeScreen .menu-button {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      min-height: 58px;
+      padding: 9px 11px;
+      border-radius: 15px;
+    }
+
+    #homeScreen .menu-icon {
+      flex: 0 0 auto;
+      margin: 0;
+      font-size: 21px;
+    }
+
+    #homeScreen .menu-title {
+      font-size: 14px;
+    }
+
+    #homeScreen .menu-description {
+      display: none;
+    }
+
+    #homeScreen .footer-note {
+      margin: 12px 0 4px;
+      font-size: 10px;
+    }
+
     @media (max-width: 390px) {
       .two-columns,
       .button-row {
@@ -689,29 +912,30 @@
           <span class="summary-label">調味料</span>
         </div>
       </div>
-<div class="card" role="button" tabindex="0" onclick="showShoppingList()">
+<div class="card home-shopping-card" role="button" tabindex="0" onclick="showShoppingList()">
     <h2 class="section-title">
         🛒 次回購入 <span class="section-note">→</span>
         <span class="section-note" id="shoppingCount">0件</span>
     </h2>
 
 </div>
-      <div class="card">
-        <h2 class="section-title">
-          賞味期限が近い食材
-          <span class="section-note">期限順</span>
-        </h2>
-
+      <div class="card home-urgent-card">
+        <div class="home-urgent-header">
+          <h2 class="section-title">賞味期限が近い食材</h2>
+          <div class="home-urgent-links">
+            <span class="section-note">期限順</span>
+            <a href="#"
+              id="viewAllUrgent"
+              class="home-view-all"
+              onclick="document.getElementById('stockSort').value='expiry'; showScreen('stockScreen'); renderStock(); return false;">
+              すべて見る →
+            </a>
+          </div>
+        </div>
         <div id="urgentList"></div>
-      <div style="text-align: right; margin-top: 12px;">
-  <a href="#"
-   id="viewAllUrgent"
-   onclick="document.getElementById('stockSort').value='expiry'; showScreen('stockScreen'); renderStock(); return false;">
-  すべて見る →
-</a>
-</div>
       </div>
 
+      <h2 class="home-shortcut-title">ショートカット</h2>
       <div class="menu-grid">
         <button
           class="menu-button"
@@ -1265,9 +1489,8 @@ const shoppingFoodCount = foods.filter(function(food) {
       const urgentList = document.getElementById("urgentList");
 
       if (foods.length === 0) {
-        urgentList.innerHTML = createEmptyHtml(
-          "まだ食材が登録されていません。<br>「食材を追加」から登録できます。"
-        );
+        urgentList.innerHTML =
+          '<div class="home-empty">まだ食材が登録されていません。<br>「食材を追加」から登録できます。</div>';
         return;
       }
 
@@ -1276,20 +1499,20 @@ const shoppingFoodCount = foods.filter(function(food) {
       });
 
       if (displayFoods.length === 0) {
-        urgentList.innerHTML = createEmptyHtml(
-          "7日以内に期限が来る食材はありません。"
-        );
+        urgentList.innerHTML =
+          '<div class="home-empty">7日以内に期限が来る食材はありません。</div>';
         return;
       }
 
-urgentList.innerHTML =
-
-    displayFoods
-        .slice(0, 3)
-        .map(function(food) {
-            return createFoodHtml(food, false);
-        })
-        .join("");
+      urgentList.innerHTML =
+        '<div class="home-urgent-list">' +
+        displayFoods
+          .slice(0, 5)
+          .map(function(food) {
+            return createHomeUrgentHtml(food);
+          })
+          .join("") +
+        "</div>";
     }
 
     function openAddFood() {
@@ -1697,6 +1920,46 @@ function toggleShoppingItem(id) {
           );
         })
         .join("");
+    }
+
+    function createHomeUrgentHtml(food) {
+      const daysLeft = getDaysLeft(food.expiry);
+      const status = getFoodStatus(daysLeft);
+      const amountText = createAmountText(food);
+      const hasAmount = amountText !== "未入力";
+      const metaParts = [
+        getCategoryDisplayName(food.category || "その他")
+      ];
+
+      if (food.location) {
+        metaParts.push(food.location);
+      }
+
+      return (
+        '<button class="home-urgent-row" type="button" onclick="editFood(' +
+        food.id +
+        ')">' +
+        '<span class="home-urgent-main">' +
+        '<span class="home-urgent-topline">' +
+        '<span class="home-urgent-name">' +
+        escapeHtml(food.name) +
+        "</span>" +
+        (hasAmount
+          ? '<span class="home-urgent-amount">' + escapeHtml(amountText) + "</span>"
+          : "") +
+        "</span>" +
+        '<span class="home-urgent-meta">' +
+        escapeHtml(metaParts.join("・")) +
+        "</span>" +
+        "</span>" +
+        '<span class="home-status-badge ' +
+        status.className +
+        '">' +
+        escapeHtml(status.text) +
+        "</span>" +
+        '<span class="home-urgent-chevron" aria-hidden="true">›</span>' +
+        "</button>"
+      );
     }
 
     function createFoodHtml(food, showActions, showCartOnly) {
