@@ -8,6 +8,7 @@
   >
   <meta name="theme-color" content="#edf7f5">
   <title>REIZO｜冷蔵庫管理</title>
+  <!-- REIZO frozen-food implementation: 2026-08-05 -->
 
   <style>
     :root {
@@ -825,7 +826,7 @@
               <option value="卵・乳製品">🥚 卵・乳製品</option>
               <option value="主食">🍚 主食</option>
               <option value="飲み物">🥤 飲み物</option>
-              <option value="冷凍食品">🧊 冷凍食品</option>
+              <option value="冷凍食品">❄️ 冷凍食品</option>
               <option value="加工食品">🍱 加工食品</option>
               <option value="その他">📦 その他</option>
             </select>
@@ -2763,6 +2764,118 @@ const stapleDatabase = {
   "ラーメン": "ラーメン", "中華麺": "ラーメン", "焼きそば": "焼きそば", "やきそば": "焼きそば"
 };
 
+
+const frozenFoodDatabase = {
+  // お弁当・おかず系
+  "冷凍餃子": { type: "お弁当・おかず系", unit: "袋", location: "冷凍" },
+  "冷凍ぎょうざ": { type: "お弁当・おかず系", unit: "袋", location: "冷凍" },
+  "餃子": { type: "お弁当・おかず系", unit: "袋", location: "冷凍" },
+  "ぎょうざ": { type: "お弁当・おかず系", unit: "袋", location: "冷凍" },
+  "冷凍シュウマイ": { type: "お弁当・おかず系", unit: "袋", location: "冷凍" },
+  "冷凍しゅうまい": { type: "お弁当・おかず系", unit: "袋", location: "冷凍" },
+  "シュウマイ": { type: "お弁当・おかず系", unit: "袋", location: "冷凍" },
+  "しゅうまい": { type: "お弁当・おかず系", unit: "袋", location: "冷凍" },
+  "冷凍春巻き": { type: "お弁当・おかず系", unit: "袋", location: "冷凍" },
+  "春巻き": { type: "お弁当・おかず系", unit: "袋", location: "冷凍" },
+  "冷凍唐揚げ": { type: "お弁当・おかず系", unit: "袋", location: "冷凍" },
+  "冷凍からあげ": { type: "お弁当・おかず系", unit: "袋", location: "冷凍" },
+  "唐揚げ": { type: "お弁当・おかず系", unit: "袋", location: "冷凍" },
+  "からあげ": { type: "お弁当・おかず系", unit: "袋", location: "冷凍" },
+  "冷凍コロッケ": { type: "お弁当・おかず系", unit: "袋", location: "冷凍" },
+  "コロッケ": { type: "お弁当・おかず系", unit: "袋", location: "冷凍" },
+  "冷凍ハンバーグ": { type: "お弁当・おかず系", unit: "袋", location: "冷凍" },
+  "ハンバーグ": { type: "お弁当・おかず系", unit: "袋", location: "冷凍" },
+  "冷凍エビフライ": { type: "お弁当・おかず系", unit: "袋", location: "冷凍" },
+  "冷凍えびフライ": { type: "お弁当・おかず系", unit: "袋", location: "冷凍" },
+  "エビフライ": { type: "お弁当・おかず系", unit: "袋", location: "冷凍" },
+  "えびフライ": { type: "お弁当・おかず系", unit: "袋", location: "冷凍" },
+  "冷凍とんかつ": { type: "お弁当・おかず系", unit: "袋", location: "冷凍" },
+  "とんかつ": { type: "お弁当・おかず系", unit: "袋", location: "冷凍" },
+  "冷凍ミートボール": { type: "お弁当・おかず系", unit: "袋", location: "冷凍" },
+  "ミートボール": { type: "お弁当・おかず系", unit: "袋", location: "冷凍" },
+  "冷凍たこ焼き": { type: "お弁当・おかず系", unit: "袋", location: "冷凍" },
+  "たこ焼き": { type: "お弁当・おかず系", unit: "袋", location: "冷凍" },
+  "冷凍お好み焼き": { type: "お弁当・おかず系", unit: "袋", location: "冷凍" },
+  "お好み焼き": { type: "お弁当・おかず系", unit: "袋", location: "冷凍" },
+  "冷凍グラタン": { type: "お弁当・おかず系", unit: "袋", location: "冷凍" },
+  "グラタン": { type: "お弁当・おかず系", unit: "袋", location: "冷凍" },
+
+  // 主食系
+  "冷凍チャーハン": { type: "主食系", unit: "袋", location: "冷凍" },
+  "冷凍炒飯": { type: "主食系", unit: "袋", location: "冷凍" },
+  "冷凍ピラフ": { type: "主食系", unit: "袋", location: "冷凍" },
+  "冷凍ドリア": { type: "主食系", unit: "袋", location: "冷凍" },
+  "冷凍焼きおにぎり": { type: "主食系", unit: "袋", location: "冷凍" },
+  "焼きおにぎり": { type: "主食系", unit: "袋", location: "冷凍" },
+  "冷凍うどん": { type: "主食系", unit: "袋", location: "冷凍" },
+  "冷凍そば": { type: "主食系", unit: "袋", location: "冷凍" },
+  "冷凍蕎麦": { type: "主食系", unit: "袋", location: "冷凍" },
+  "冷凍パスタ": { type: "主食系", unit: "袋", location: "冷凍" },
+  "冷凍スパゲッティ": { type: "主食系", unit: "袋", location: "冷凍" },
+  "冷凍スパゲティ": { type: "主食系", unit: "袋", location: "冷凍" },
+  "冷凍ラーメン": { type: "主食系", unit: "袋", location: "冷凍" },
+
+  // 冷凍野菜・カット野菜
+  "冷凍ブロッコリー": { type: "冷凍野菜・カット野菜", unit: "袋", location: "冷凍" },
+  "冷凍ほうれん草": { type: "冷凍野菜・カット野菜", unit: "袋", location: "冷凍" },
+  "冷凍ほうれんそう": { type: "冷凍野菜・カット野菜", unit: "袋", location: "冷凍" },
+  "冷凍枝豆": { type: "冷凍野菜・カット野菜", unit: "袋", location: "冷凍" },
+  "冷凍コーン": { type: "冷凍野菜・カット野菜", unit: "袋", location: "冷凍" },
+  "冷凍ミックスベジタブル": { type: "冷凍野菜・カット野菜", unit: "袋", location: "冷凍" },
+  "ミックスベジタブル": { type: "冷凍野菜・カット野菜", unit: "袋", location: "冷凍" },
+  "冷凍オクラ": { type: "冷凍野菜・カット野菜", unit: "袋", location: "冷凍" },
+  "冷凍かぼちゃ": { type: "冷凍野菜・カット野菜", unit: "袋", location: "冷凍" },
+  "冷凍カボチャ": { type: "冷凍野菜・カット野菜", unit: "袋", location: "冷凍" },
+  "冷凍玉ねぎ": { type: "冷凍野菜・カット野菜", unit: "袋", location: "冷凍" },
+  "冷凍玉葱": { type: "冷凍野菜・カット野菜", unit: "袋", location: "冷凍" },
+  "冷凍カット玉ねぎ": { type: "冷凍野菜・カット野菜", unit: "袋", location: "冷凍" },
+  "冷凍ネギ": { type: "冷凍野菜・カット野菜", unit: "袋", location: "冷凍" },
+  "冷凍ねぎ": { type: "冷凍野菜・カット野菜", unit: "袋", location: "冷凍" },
+  "冷凍カットねぎ": { type: "冷凍野菜・カット野菜", unit: "袋", location: "冷凍" },
+  "冷凍きのこミックス": { type: "冷凍野菜・カット野菜", unit: "袋", location: "冷凍" },
+  "きのこミックス": { type: "冷凍野菜・カット野菜", unit: "袋", location: "冷凍" },
+
+  // スイーツ系
+  "冷凍アイス": { type: "スイーツ系", unit: "個", location: "冷凍" },
+  "アイス": { type: "スイーツ系", unit: "個", location: "冷凍" },
+  "アイスクリーム": { type: "スイーツ系", unit: "個", location: "冷凍" },
+  "冷凍今川焼き": { type: "スイーツ系", unit: "個", location: "冷凍" },
+  "今川焼き": { type: "スイーツ系", unit: "個", location: "冷凍" },
+  "大判焼き": { type: "スイーツ系", unit: "個", location: "冷凍" },
+  "冷凍ワッフル": { type: "スイーツ系", unit: "個", location: "冷凍" },
+  "ワッフル": { type: "スイーツ系", unit: "個", location: "冷凍" },
+  "冷凍ケーキ": { type: "スイーツ系", unit: "個", location: "冷凍" },
+  "冷凍シュークリーム": { type: "スイーツ系", unit: "個", location: "冷凍" },
+  "冷凍ブルーベリー": { type: "スイーツ系", unit: "個", location: "冷凍" },
+  "冷凍マンゴー": { type: "スイーツ系", unit: "個", location: "冷凍" },
+  "冷凍いちご": { type: "スイーツ系", unit: "個", location: "冷凍" },
+  "冷凍イチゴ": { type: "スイーツ系", unit: "個", location: "冷凍" },
+
+  // 調理用の冷凍肉・魚
+  "冷凍鶏肉": { type: "調理用の冷凍肉・魚", unit: "g", location: "冷凍" },
+  "冷凍鶏もも": { type: "調理用の冷凍肉・魚", unit: "g", location: "冷凍" },
+  "冷凍鶏むね": { type: "調理用の冷凍肉・魚", unit: "g", location: "冷凍" },
+  "冷凍豚肉": { type: "調理用の冷凍肉・魚", unit: "g", location: "冷凍" },
+  "冷凍豚バラ": { type: "調理用の冷凍肉・魚", unit: "g", location: "冷凍" },
+  "冷凍豚こま": { type: "調理用の冷凍肉・魚", unit: "g", location: "冷凍" },
+  "冷凍牛肉": { type: "調理用の冷凍肉・魚", unit: "g", location: "冷凍" },
+  "冷凍牛こま": { type: "調理用の冷凍肉・魚", unit: "g", location: "冷凍" },
+  "冷凍ひき肉": { type: "調理用の冷凍肉・魚", unit: "g", location: "冷凍" },
+  "冷凍挽き肉": { type: "調理用の冷凍肉・魚", unit: "g", location: "冷凍" },
+  "冷凍エビ": { type: "調理用の冷凍肉・魚", unit: "g", location: "冷凍" },
+  "冷凍えび": { type: "調理用の冷凍肉・魚", unit: "g", location: "冷凍" },
+  "冷凍海老": { type: "調理用の冷凍肉・魚", unit: "g", location: "冷凍" },
+  "冷凍イカ": { type: "調理用の冷凍肉・魚", unit: "g", location: "冷凍" },
+  "冷凍いか": { type: "調理用の冷凍肉・魚", unit: "g", location: "冷凍" },
+  "冷凍あさり": { type: "調理用の冷凍肉・魚", unit: "g", location: "冷凍" },
+  "冷凍シーフードミックス": { type: "調理用の冷凍肉・魚", unit: "g", location: "冷凍" },
+  "シーフードミックス": { type: "調理用の冷凍肉・魚", unit: "g", location: "冷凍" },
+  "冷凍鮭": { type: "調理用の冷凍肉・魚", unit: "g", location: "冷凍" },
+  "冷凍サバ": { type: "調理用の冷凍肉・魚", unit: "g", location: "冷凍" },
+  "冷凍さば": { type: "調理用の冷凍肉・魚", unit: "g", location: "冷凍" },
+  "冷凍鯖": { type: "調理用の冷凍肉・魚", unit: "g", location: "冷凍" }
+};
+
 const processedFoodDatabase = {
   // 缶詰・瓶詰
   "ツナ缶（4缶）": { type: "缶詰・瓶詰", unit: "パック", location: "常温" },
@@ -2847,7 +2960,7 @@ const categoryDisplayNames = {
   "卵・乳製品": "🥚 卵・乳製品",
   "主食": "🍚 主食",
   "飲み物": "🥤 飲み物",
-  "冷凍食品": "🧊 冷凍食品",
+  "冷凍食品": "❄️ 冷凍食品",
   "加工食品": "🍱 加工食品",
   "その他": "📦 その他",
   "すべて": "📋 すべて"
@@ -2860,6 +2973,7 @@ const typeDisplayNames = {
   "卵": "🥚 卵", "チーズ": "🧀 チーズ", "ヨーグルト": "🥣 ヨーグルト", "バター": "🧈 バター", "生クリーム": "🥛 生クリーム",
   "白米": "🍚 白米", "玄米": "🌾 玄米", "もち米": "🍚 もち米", "食パン": "🍞 食パン", "菓子パン": "🥐 菓子パン", "パスタ": "🍝 パスタ", "うどん": "🍜 うどん", "そば": "🥢 そば", "そうめん": "🥢 そうめん", "ラーメン": "🍜 ラーメン", "焼きそば": "🍜 焼きそば",
   "水": "💧 水", "お茶": "🍵 お茶", "コーヒー": "☕ コーヒー", "牛乳": "🥛 牛乳", "ジュース": "🧃 ジュース", "炭酸飲料": "🥤 炭酸飲料", "お酒": "🍺 お酒", "スポーツドリンク": "🏃 スポーツドリンク", "豆乳": "🌱 豆乳",
+  "お弁当・おかず系": "🍱 お弁当・おかず系", "主食系": "🍚 主食系", "冷凍野菜・カット野菜": "🥦 冷凍野菜・カット野菜", "スイーツ系": "🍰 スイーツ系", "調理用の冷凍肉・魚": "🥩 調理用の冷凍肉・魚",
   "缶詰・瓶詰": "🥫 缶詰・瓶詰", "レトルト": "🍛 レトルト", "加工肉": "🥓 加工肉", "練り物": "🍥 練り物", "大豆食品": "🫘 大豆食品", "漬物": "🥒 漬物",
   "その他": "📦 その他"
 };
@@ -2879,11 +2993,13 @@ const foodTypes = {
   "果物": ["りんご", "バナナ", "みかん", "オレンジ", "甘夏", "はっさく", "伊予柑", "デコポン", "ポンカン", "グレープフルーツ", "レモン", "ライム", "ゆず", "すだち", "かぼす", "ぶどう", "いちご", "キウイ", "桃", "梨", "洋梨", "柿", "さくらんぼ", "スイカ", "メロン", "パイナップル", "マンゴー", "ドラゴンフルーツ", "パパイヤ", "ブルーベリー", "ラズベリー", "ブラックベリー", "びわ", "いちじく", "すもも", "プルーン", "ざくろ", "栗", "ココナッツ", "その他"],
   "卵・乳製品": ["卵", "チーズ", "ヨーグルト", "バター", "生クリーム", "その他"],
   "主食": ["白米", "玄米", "もち米", "食パン", "菓子パン", "パスタ", "うどん", "そば", "そうめん", "ラーメン", "焼きそば", "その他"],
+  "冷凍食品": ["お弁当・おかず系", "主食系", "冷凍野菜・カット野菜", "スイーツ系", "調理用の冷凍肉・魚", "その他"],
   "加工食品": ["缶詰・瓶詰", "レトルト", "加工肉", "練り物", "大豆食品", "漬物", "その他"],
   "飲み物": ["水", "お茶", "コーヒー", "牛乳", "ジュース", "炭酸飲料", "お酒", "スポーツドリンク", "豆乳", "その他"]
 };
 
 const foodDatabaseGroups = [
+  { category: "冷凍食品", data: frozenFoodDatabase },
   { category: "飲み物", data: drinkDatabase },
   { category: "加工食品", data: processedFoodDatabase },
   { category: "果物", data: fruitDatabase },
@@ -2997,6 +3113,7 @@ function getDefaultUnitForCategory(category) {
   if (category === "肉" || category === "魚") return "g";
   if (category === "飲み物") return "ml";
   if (category === "主食") return "袋";
+  if (category === "冷凍食品") return "袋";
   if (category === "加工食品") return "個";
   return "個";
 }
@@ -3398,6 +3515,39 @@ function getBaseAmountCandidates() {
       makeAmountCandidate(120, "g"),
       makeAmountCandidate(180, "g")
     ];
+  }
+
+  // 冷凍食品：種類ごとに、購入時に自然な販売単位を表示する。
+  if (category === "冷凍食品") {
+    if (type === "調理用の冷凍肉・魚") {
+      return [
+        makeAmountCandidate(100, "g"),
+        makeAmountCandidate(200, "g"),
+        makeAmountCandidate(300, "g"),
+        makeAmountCandidate(500, "g"),
+        makeAmountCandidate(1, "kg")
+      ];
+    }
+
+    if (type === "スイーツ系") {
+      return [1, 2, 3].map(function(value) {
+        return makeAmountCandidate(value, "個");
+      });
+    }
+
+    if (
+      type === "お弁当・おかず系" ||
+      type === "主食系" ||
+      type === "冷凍野菜・カット野菜"
+    ) {
+      return [1, 2].map(function(value) {
+        return makeAmountCandidate(value, "袋");
+      });
+    }
+
+    return [1, 2].map(function(value) {
+      return makeAmountCandidate(value, "袋");
+    });
   }
 
   // 加工食品：スーパーで購入した販売単位を優先する。
