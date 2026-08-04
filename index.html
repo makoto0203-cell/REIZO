@@ -2739,6 +2739,45 @@ if (foodTypes[category]) {
         toast.classList.remove("show");
       }, 2200);
     }
+function renderShoppingList() {
+    const shoppingList =
+        document.getElementById("shoppingFoodList");
+
+    const shoppingFoods = foods.filter(function(food) {
+        return food.shopping;
+    });
+
+    const shoppingSeasonings = seasonings.filter(function(item) {
+        return item.buyNext;
+    });
+
+    if (
+        shoppingFoods.length === 0 &&
+        shoppingSeasonings.length === 0
+    ) {
+        shoppingList.innerHTML =
+            createEmptyHtml("次回購入はありません。");
+        return;
+    }
+
+    let html = "";
+
+    shoppingFoods.forEach(function(food) {
+        html += createFoodHtml(food, false, true);
+    });
+
+    shoppingSeasonings.forEach(function(item) {
+        html +=
+            '<article class="food-item safe">' +
+            '<h3>🧂 ' + escapeHtml(item.name) + "</h3>" +
+            '<div class="food-info">' +
+            "調味料" +
+            "</div>" +
+            "</article>";
+    });
+
+    shoppingList.innerHTML = html;
+}
 function showShoppingList() {
     showScreen("seasoningScreen");
 
