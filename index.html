@@ -2738,9 +2738,28 @@ function toggleShoppingItem(id) {
             : "買い物リストから外しました"
     );
 }
+function renderShoppingFoodList() {
+    const shoppingFoods = foods.filter(function(food) {
+        return food.shopping;
+    });
+
+    const shoppingFoodList = document.getElementById("shoppingFoodList");
+
+    if (shoppingFoods.length === 0) {
+        shoppingFoodList.innerHTML = createEmptyHtml("買い物リストは空です。");
+        return;
+    }
+
+    shoppingFoodList.innerHTML = shoppingFoods
+        .map(function(food) {
+            return createFoodHtml(food, false);
+        })
+        .join("");
+}
+
 function showShoppingList() {
     showScreen("shoppingScreen");
-
+renderShoppingFoodList();
     setTimeout(function () {
         window.scrollTo({
             top: 0,
