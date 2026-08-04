@@ -1502,7 +1502,7 @@ urgentList.innerHTML =
     ')">編集</button>' +
     '<button class="small-button" type="button" onclick="toggleShoppingItem(' +
 food.id +
-')">🛒</button>' +
+')">' + (food.shopping ? '✅🛒' : '🛒') + '</button>' +
     '<button class="small-button delete" type="button" onclick="deleteFood(' +
     food.id +
     ')">削除</button>' +
