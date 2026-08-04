@@ -557,6 +557,33 @@
       transform: translateY(0);
     }
 
+
+    .auto-detect-note {
+      min-height: 20px;
+      margin-top: 7px;
+      color: var(--main-dark);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .quick-date-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 9px;
+    }
+
+    .quick-date-button {
+      padding: 7px 11px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--main-dark);
+      background: white;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
     @media (max-width: 390px) {
       .two-columns,
       .button-row {
@@ -600,11 +627,12 @@
           <span class="summary-label">調味料</span>
         </div>
       </div>
-<div class="card" role="button" tabindex="0" onclick="showShoppingList()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();showShoppingList();}">
-    <h2 class="section-title" style="margin-bottom:0;">
+<div class="card" role="button" tabindex="0" onclick="showShoppingList()">
+    <h2 class="section-title">
         🛒 次回購入 <span class="section-note">→</span>
         <span class="section-note" id="shoppingCount">0件</span>
     </h2>
+
 </div>
       <div class="card">
         <h2 class="section-title">
@@ -710,15 +738,18 @@
             maxlength="40"
             placeholder="例：豚バラ肉"
             autocomplete="off"
-          oninput="autoSelectFoodCategory()"
+            list="foodSuggestions"
+            oninput="autoSelectFoodCategory()"
           >
+          <datalist id="foodSuggestions"></datalist>
+          <div id="foodAutoDetectNote" class="auto-detect-note"></div>
         </div>
 
         <div class="two-columns">
           <div class="field">
             <label for="foodCategory">カテゴリー</label>
 
-            <select id="foodCategory" onchange="setDefaultUnitByCategory()">
+            <select id="foodCategory" onchange="handleManualCategoryChange()">
               <option value="肉">肉</option>
               <option value="魚">魚</option>
               <option value="野菜">野菜</option>
@@ -734,7 +765,7 @@
           <div class="field" id="foodTypeField" style="display:none;">
   <label for="foodType">種類</label>
 
-  <select id="foodType">
+  <select id="foodType" onchange="handleManualTypeChange()">
     <option value="">選択してください</option>
     
     
@@ -776,6 +807,7 @@
               <option value="kg">kg</option>
               <option value="個">個</option>
               <option value="本">本</option>
+              <option value="房">房</option>
               <option value="枚">枚</option>
               <option value="袋">袋</option>
               <option value="パック">パック</option>
@@ -794,6 +826,12 @@
           </label>
 
           <input id="foodExpiry" type="date">
+          <div class="quick-date-row" aria-label="期限のクイック入力">
+            <button class="quick-date-button" type="button" onclick="setExpiryFromToday(0)">今日</button>
+            <button class="quick-date-button" type="button" onclick="setExpiryFromToday(1)">明日</button>
+            <button class="quick-date-button" type="button" onclick="setExpiryFromToday(3)">3日後</button>
+            <button class="quick-date-button" type="button" onclick="setExpiryFromToday(7)">1週間後</button>
+          </div>
         </div>
 
         <div class="field">
@@ -1043,6 +1081,8 @@
     let seasonings = readStorage(SEASONING_STORAGE_KEY);
     let selectedStockCategory = "すべて";
     let toastTimer = null;
+    let foodCategoryManuallyChanged = false;
+    let foodTypeManuallyChanged = false;
 
     function readStorage(key) {
       try {
@@ -1105,21 +1145,16 @@
       });
     }
 
-    function isFoodBuyNext(food) {
-      return Boolean(food && (food.shopping || food.buyNext));
-    }
-
     function renderHome() {
       document.getElementById("totalCount").textContent = foods.length;
       document.getElementById("seasoningCount").textContent =
         seasonings.length;
-
-      const shoppingFoodCount = foods.filter(function(food) {
-        return isFoodBuyNext(food);
+const shoppingFoodCount = foods.filter(function(food) {
+        return Boolean(food.shopping || food.buyNext);
       }).length;
 
       const shoppingSeasoningCount = seasonings.filter(function(item) {
-        return item.buyNext;
+        return Boolean(item.buyNext);
       }).length;
 
       document.getElementById("shoppingCount").textContent =
@@ -1150,10 +1185,6 @@
         );
         return;
       }
-
-      const shoppingSeasonings = seasonings.filter(function(item) {
-    return item.buyNext;
-});
 
 urgentList.innerHTML =
 
@@ -1199,6 +1230,8 @@ urgentList.innerHTML =
       document.getElementById("foodName").value = food.name || "";
       document.getElementById("foodCategory").value =
         food.category || "その他";
+      setDefaultUnitByCategory(true);
+      document.getElementById("foodType").value = food.type || "";
 
       document.getElementById("foodLocation").value =
         food.location || "冷蔵";
@@ -1223,6 +1256,9 @@ urgentList.innerHTML =
 
       document.getElementById("foodSaveButton").textContent =
         "変更を保存";
+      foodCategoryManuallyChanged = false;
+      foodTypeManuallyChanged = false;
+      updateAutoDetectNote("");
 
       showScreen("addScreen");
     }
@@ -1236,6 +1272,9 @@ urgentList.innerHTML =
 
       const category =
         document.getElementById("foodCategory").value;
+
+      const type =
+        document.getElementById("foodType").value;
 
       const location =
         document.getElementById("foodLocation").value;
@@ -1277,6 +1316,7 @@ urgentList.innerHTML =
             ...foods[foodIndex],
             name: name,
             category: category,
+            type: type,
             location: location,
             amount: amount,
             unit: unit,
@@ -1293,14 +1333,13 @@ urgentList.innerHTML =
           id: Date.now(),
           name: name,
           category: category,
+          type: type,
           location: location,
           amount: amount,
           unit: unit,
           expiry: expiry,
           purchaseDate: purchaseDate,
           note: note,
-          shopping: false,
-          buyNext: false,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         });
@@ -1322,12 +1361,17 @@ urgentList.innerHTML =
       document.getElementById("editingFoodId").value = "";
       document.getElementById("foodName").value = "";
       document.getElementById("foodCategory").value = "肉";
+      setDefaultUnitByCategory(true);
+      document.getElementById("foodType").value = "";
       document.getElementById("foodLocation").value = "冷蔵";
       document.getElementById("foodAmount").value = "";
       document.getElementById("foodUnit").value = "g";
       document.getElementById("foodExpiry").value = "";
       document.getElementById("foodPurchaseDate").value = "";
       document.getElementById("foodNote").value = "";
+      foodCategoryManuallyChanged = false;
+      foodTypeManuallyChanged = false;
+      updateAutoDetectNote("");
     }
 
     function deleteFood(id) {
@@ -1366,7 +1410,7 @@ function toggleShoppingItem(id) {
         return;
     }
 
-    const nextState = !isFoodBuyNext(food);
+    const nextState = !Boolean(food.shopping || food.buyNext);
     food.shopping = nextState;
     food.buyNext = nextState;
 
@@ -1378,8 +1422,8 @@ function toggleShoppingItem(id) {
 
     showToast(
         nextState
-            ? "次回購入に追加しました"
-            : "次回購入から外しました"
+            ? "買い物リストに追加しました"
+            : "買い物リストから外しました"
     );
 }
     function renderStockCategoryTabs() {
@@ -1556,7 +1600,7 @@ function toggleShoppingItem(id) {
     ')">編集</button>' +
     '<button class="small-button" type="button" onclick="toggleShoppingItem(' +
 food.id +
-')">' + (isFoodBuyNext(food) ? '✅🛒' : '🛒') + '</button>' +
+')">' + (Boolean(food.shopping || food.buyNext) ? '✅🛒' : '🛒') + '</button>' +
     '<button class="small-button delete" type="button" onclick="deleteFood(' +
     food.id +
     ')">削除</button>' +
@@ -1565,7 +1609,7 @@ food.id +
   ? '<div class="item-actions">' +
     '<button class="small-button" type="button" onclick="toggleShoppingItem(' +
     food.id +
-    ')">' + (isFoodBuyNext(food) ? '✅🛒' : '🛒') + '</button>' +
+    ')">' + (Boolean(food.shopping || food.buyNext) ? '✅🛒' : '🛒') + '</button>' +
     "</div>"
   : "";
 
@@ -1926,8 +1970,8 @@ function toggleBuyNext(id) {
 
   showToast(
     seasoning.buyNext
-      ? "次回購入に追加しました"
-      : "次回購入から外しました"
+      ? "買い物リストに追加しました"
+      : "買い物リストから外しました"
   );
 }
     function renderSeasonings() {
@@ -2387,352 +2431,383 @@ const fishDatabase = {
   "ホッケ": "その他",
   "ほっけ": "その他"
 };
+const fruitDatabase = {
+  "りんご": { type: "りんご", unit: "個", location: "野菜室" },
+  "リンゴ": { type: "りんご", unit: "個", location: "野菜室" },
+  "アップル": { type: "りんご", unit: "個", location: "野菜室" },
+  "バナナ": { type: "バナナ", unit: "本", location: "常温" },
+  "みかん": { type: "みかん", unit: "個", location: "野菜室" },
+  "ミカン": { type: "みかん", unit: "個", location: "野菜室" },
+  "オレンジ": { type: "オレンジ", unit: "個", location: "野菜室" },
+  "甘夏": { type: "甘夏", unit: "個", location: "野菜室" },
+  "はっさく": { type: "はっさく", unit: "個", location: "野菜室" },
+  "八朔": { type: "はっさく", unit: "個", location: "野菜室" },
+  "伊予柑": { type: "伊予柑", unit: "個", location: "野菜室" },
+  "いよかん": { type: "伊予柑", unit: "個", location: "野菜室" },
+  "デコポン": { type: "デコポン", unit: "個", location: "野菜室" },
+  "ポンカン": { type: "ポンカン", unit: "個", location: "野菜室" },
+  "グレープフルーツ": { type: "グレープフルーツ", unit: "個", location: "野菜室" },
+  "レモン": { type: "レモン", unit: "個", location: "野菜室" },
+  "ライム": { type: "ライム", unit: "個", location: "野菜室" },
+  "ゆず": { type: "ゆず", unit: "個", location: "野菜室" },
+  "柚子": { type: "ゆず", unit: "個", location: "野菜室" },
+  "すだち": { type: "すだち", unit: "個", location: "野菜室" },
+  "かぼす": { type: "かぼす", unit: "個", location: "野菜室" },
+  "ぶどう": { type: "ぶどう", unit: "房", location: "野菜室" },
+  "ブドウ": { type: "ぶどう", unit: "房", location: "野菜室" },
+  "葡萄": { type: "ぶどう", unit: "房", location: "野菜室" },
+  "いちご": { type: "いちご", unit: "パック", location: "野菜室" },
+  "イチゴ": { type: "いちご", unit: "パック", location: "野菜室" },
+  "苺": { type: "いちご", unit: "パック", location: "野菜室" },
+  "キウイ": { type: "キウイ", unit: "個", location: "野菜室" },
+  "桃": { type: "桃", unit: "個", location: "野菜室" },
+  "もも": { type: "桃", unit: "個", location: "野菜室" },
+  "梨": { type: "梨", unit: "個", location: "野菜室" },
+  "なし": { type: "梨", unit: "個", location: "野菜室" },
+  "洋梨": { type: "洋梨", unit: "個", location: "野菜室" },
+  "ラフランス": { type: "洋梨", unit: "個", location: "野菜室" },
+  "柿": { type: "柿", unit: "個", location: "野菜室" },
+  "かき": { type: "柿", unit: "個", location: "野菜室" },
+  "さくらんぼ": { type: "さくらんぼ", unit: "パック", location: "野菜室" },
+  "サクランボ": { type: "さくらんぼ", unit: "パック", location: "野菜室" },
+  "チェリー": { type: "さくらんぼ", unit: "パック", location: "野菜室" },
+  "スイカ": { type: "スイカ", unit: "個", location: "野菜室" },
+  "すいか": { type: "スイカ", unit: "個", location: "野菜室" },
+  "メロン": { type: "メロン", unit: "個", location: "野菜室" },
+  "パイナップル": { type: "パイナップル", unit: "個", location: "野菜室" },
+  "パイン": { type: "パイナップル", unit: "個", location: "野菜室" },
+  "マンゴー": { type: "マンゴー", unit: "個", location: "野菜室" },
+  "ドラゴンフルーツ": { type: "ドラゴンフルーツ", unit: "個", location: "野菜室" },
+  "パパイヤ": { type: "パパイヤ", unit: "個", location: "野菜室" },
+  "ブルーベリー": { type: "ブルーベリー", unit: "パック", location: "野菜室" },
+  "ラズベリー": { type: "ラズベリー", unit: "パック", location: "野菜室" },
+  "ブラックベリー": { type: "ブラックベリー", unit: "パック", location: "野菜室" },
+  "びわ": { type: "びわ", unit: "パック", location: "野菜室" },
+  "枇杷": { type: "びわ", unit: "パック", location: "野菜室" },
+  "いちじく": { type: "いちじく", unit: "パック", location: "野菜室" },
+  "無花果": { type: "いちじく", unit: "パック", location: "野菜室" },
+  "すもも": { type: "すもも", unit: "パック", location: "野菜室" },
+  "プラム": { type: "すもも", unit: "パック", location: "野菜室" },
+  "プルーン": { type: "プルーン", unit: "パック", location: "野菜室" },
+  "ざくろ": { type: "ざくろ", unit: "個", location: "野菜室" },
+  "栗": { type: "栗", unit: "袋", location: "常温" },
+  "くり": { type: "栗", unit: "袋", location: "常温" },
+  "ココナッツ": { type: "ココナッツ", unit: "個", location: "常温" }
+};
+
 const drinkDatabase = {
-  "豆乳": "豆乳"
+  "ミネラルウォーター": { type: "水", unit: "ml", location: "常温" },
+  "南アルプス天然水": { type: "水", unit: "ml", location: "常温" },
+  "おいしい水": { type: "水", unit: "ml", location: "常温" },
+  "天然水": { type: "水", unit: "ml", location: "常温" },
+  "いろはす": { type: "水", unit: "ml", location: "常温" },
+  "い・ろ・は・す": { type: "水", unit: "ml", location: "常温" },
+  "エビアン": { type: "水", unit: "ml", location: "常温" },
+  "ボルヴィック": { type: "水", unit: "ml", location: "常温" },
+  "クリスタルガイザー": { type: "水", unit: "ml", location: "常温" },
+  "水": { type: "水", unit: "ml", location: "常温" },
+
+  "午後の紅茶": { type: "お茶", unit: "ml", location: "冷蔵" },
+  "健康ミネラルむぎ茶": { type: "お茶", unit: "ml", location: "冷蔵" },
+  "おーいお茶": { type: "お茶", unit: "ml", location: "冷蔵" },
+  "お〜いお茶": { type: "お茶", unit: "ml", location: "冷蔵" },
+  "伊右衛門": { type: "お茶", unit: "ml", location: "冷蔵" },
+  "綾鷹": { type: "お茶", unit: "ml", location: "冷蔵" },
+  "生茶": { type: "お茶", unit: "ml", location: "冷蔵" },
+  "十六茶": { type: "お茶", unit: "ml", location: "冷蔵" },
+  "爽健美茶": { type: "お茶", unit: "ml", location: "冷蔵" },
+  "ジャスミン茶": { type: "お茶", unit: "ml", location: "冷蔵" },
+  "ほうじ茶": { type: "お茶", unit: "ml", location: "冷蔵" },
+  "ウーロン茶": { type: "お茶", unit: "ml", location: "冷蔵" },
+  "烏龍茶": { type: "お茶", unit: "ml", location: "冷蔵" },
+  "麦茶": { type: "お茶", unit: "ml", location: "冷蔵" },
+  "緑茶": { type: "お茶", unit: "ml", location: "冷蔵" },
+  "紅茶": { type: "お茶", unit: "ml", location: "冷蔵" },
+  "お茶": { type: "お茶", unit: "ml", location: "冷蔵" },
+
+  "クラフトボス": { type: "コーヒー", unit: "ml", location: "冷蔵" },
+  "ダイドーブレンド": { type: "コーヒー", unit: "ml", location: "冷蔵" },
+  "ブラックコーヒー": { type: "コーヒー", unit: "ml", location: "冷蔵" },
+  "アイスコーヒー": { type: "コーヒー", unit: "ml", location: "冷蔵" },
+  "カフェラテ": { type: "コーヒー", unit: "ml", location: "冷蔵" },
+  "カフェオレ": { type: "コーヒー", unit: "ml", location: "冷蔵" },
+  "ジョージア": { type: "コーヒー", unit: "ml", location: "冷蔵" },
+  "ワンダ": { type: "コーヒー", unit: "ml", location: "冷蔵" },
+  "boss": { type: "コーヒー", unit: "ml", location: "冷蔵" },
+  "ボス": { type: "コーヒー", unit: "ml", location: "冷蔵" },
+  "fire": { type: "コーヒー", unit: "ml", location: "冷蔵" },
+  "コーヒー": { type: "コーヒー", unit: "ml", location: "冷蔵" },
+
+  "低脂肪乳": { type: "牛乳", unit: "ml", location: "冷蔵" },
+  "無脂肪乳": { type: "牛乳", unit: "ml", location: "冷蔵" },
+  "特濃牛乳": { type: "牛乳", unit: "ml", location: "冷蔵" },
+  "加工乳": { type: "牛乳", unit: "ml", location: "冷蔵" },
+  "牛乳": { type: "牛乳", unit: "ml", location: "冷蔵" },
+  "ミルク": { type: "牛乳", unit: "ml", location: "冷蔵" },
+
+  "カルピスウォーター": { type: "ジュース", unit: "ml", location: "冷蔵" },
+  "オレンジジュース": { type: "ジュース", unit: "ml", location: "冷蔵" },
+  "りんごジュース": { type: "ジュース", unit: "ml", location: "冷蔵" },
+  "ぶどうジュース": { type: "ジュース", unit: "ml", location: "冷蔵" },
+  "野菜ジュース": { type: "ジュース", unit: "ml", location: "冷蔵" },
+  "トロピカーナ": { type: "ジュース", unit: "ml", location: "冷蔵" },
+  "バヤリース": { type: "ジュース", unit: "ml", location: "冷蔵" },
+  "なっちゃん": { type: "ジュース", unit: "ml", location: "冷蔵" },
+  "カルピス": { type: "ジュース", unit: "ml", location: "冷蔵" },
+  "レッドブル": { type: "ジュース", unit: "ml", location: "冷蔵" },
+  "redbull": { type: "ジュース", unit: "ml", location: "冷蔵" },
+  "モンスターエナジー": { type: "ジュース", unit: "ml", location: "冷蔵" },
+  "モンスター": { type: "ジュース", unit: "ml", location: "冷蔵" },
+  "monster": { type: "ジュース", unit: "ml", location: "冷蔵" },
+  "dole": { type: "ジュース", unit: "ml", location: "冷蔵" },
+  "qoo": { type: "ジュース", unit: "ml", location: "冷蔵" },
+  "ジュース": { type: "ジュース", unit: "ml", location: "冷蔵" },
+
+  "ドクターペッパー": { type: "炭酸飲料", unit: "ml", location: "冷蔵" },
+  "三ツ矢サイダー": { type: "炭酸飲料", unit: "ml", location: "冷蔵" },
+  "ジンジャーエール": { type: "炭酸飲料", unit: "ml", location: "冷蔵" },
+  "オロナミンc": { type: "炭酸飲料", unit: "ml", location: "冷蔵" },
+  "デカビタc": { type: "炭酸飲料", unit: "ml", location: "冷蔵" },
+  "ccレモン": { type: "炭酸飲料", unit: "ml", location: "冷蔵" },
+  "c.c.レモン": { type: "炭酸飲料", unit: "ml", location: "冷蔵" },
+  "キレートレモン": { type: "炭酸飲料", unit: "ml", location: "冷蔵" },
+  "コカコーラ": { type: "炭酸飲料", unit: "ml", location: "冷蔵" },
+  "コカ・コーラ": { type: "炭酸飲料", unit: "ml", location: "冷蔵" },
+  "コーラ": { type: "炭酸飲料", unit: "ml", location: "冷蔵" },
+  "ペプシ": { type: "炭酸飲料", unit: "ml", location: "冷蔵" },
+  "ファンタ": { type: "炭酸飲料", unit: "ml", location: "冷蔵" },
+  "スプライト": { type: "炭酸飲料", unit: "ml", location: "冷蔵" },
+  "サイダー": { type: "炭酸飲料", unit: "ml", location: "冷蔵" },
+  "炭酸飲料": { type: "炭酸飲料", unit: "ml", location: "冷蔵" },
+  "炭酸": { type: "炭酸飲料", unit: "ml", location: "冷蔵" },
+
+  "ポカリスエット": { type: "スポーツドリンク", unit: "ml", location: "冷蔵" },
+  "イオンウォーター": { type: "スポーツドリンク", unit: "ml", location: "冷蔵" },
+  "グリーンダカラ": { type: "スポーツドリンク", unit: "ml", location: "冷蔵" },
+  "アクエリアス": { type: "スポーツドリンク", unit: "ml", location: "冷蔵" },
+  "アミノバイタル": { type: "スポーツドリンク", unit: "ml", location: "冷蔵" },
+  "ポカリ": { type: "スポーツドリンク", unit: "ml", location: "冷蔵" },
+  "vaam": { type: "スポーツドリンク", unit: "ml", location: "冷蔵" },
+  "スポーツドリンク": { type: "スポーツドリンク", unit: "ml", location: "冷蔵" },
+
+  "キッコーマン豆乳": { type: "豆乳", unit: "ml", location: "冷蔵" },
+  "マルサン豆乳": { type: "豆乳", unit: "ml", location: "冷蔵" },
+  "無調整豆乳": { type: "豆乳", unit: "ml", location: "冷蔵" },
+  "調製豆乳": { type: "豆乳", unit: "ml", location: "冷蔵" },
+  "豆乳": { type: "豆乳", unit: "ml", location: "冷蔵" },
+
+  "プレミアムモルツ": { type: "お酒", unit: "本", location: "冷蔵" },
+  "スーパードライ": { type: "お酒", unit: "本", location: "冷蔵" },
+  "こだわり酒場": { type: "お酒", unit: "本", location: "冷蔵" },
+  "角ハイボール": { type: "お酒", unit: "本", location: "冷蔵" },
+  "一番搾り": { type: "お酒", unit: "本", location: "冷蔵" },
+  "黒ラベル": { type: "お酒", unit: "本", location: "冷蔵" },
+  "のどごし生": { type: "お酒", unit: "本", location: "冷蔵" },
+  "本麒麟": { type: "お酒", unit: "本", location: "冷蔵" },
+  "氷結": { type: "お酒", unit: "本", location: "冷蔵" },
+  "ほろよい": { type: "お酒", unit: "本", location: "冷蔵" },
+  "ハイボール": { type: "お酒", unit: "本", location: "冷蔵" },
+  "チューハイ": { type: "お酒", unit: "本", location: "冷蔵" },
+  "ビール": { type: "お酒", unit: "本", location: "冷蔵" },
+  "ワイン": { type: "お酒", unit: "本", location: "常温" },
+  "日本酒": { type: "お酒", unit: "本", location: "常温" },
+  "焼酎": { type: "お酒", unit: "本", location: "常温" },
+  "ウイスキー": { type: "お酒", unit: "本", location: "常温" },
+  "梅酒": { type: "お酒", unit: "本", location: "常温" },
+  "カクテル": { type: "お酒", unit: "本", location: "冷蔵" },
+  "お酒": { type: "お酒", unit: "本", location: "常温" }
 };
+
 const dairyDatabase = {
-  // 卵
-  "温泉卵": "卵",
-  "温泉たまご": "卵",
-  "ゆで卵": "卵",
-  "ゆでたまご": "卵",
-  "煮卵": "卵",
-  "味付け卵": "卵",
-  "味玉": "卵",
-  "生卵": "卵",
-  "たまご": "卵",
-  "タマゴ": "卵",
-  "卵": "卵",
-
-  // 牛乳
-  "低脂肪乳": "牛乳",
-  "無脂肪乳": "牛乳",
-  "加工乳": "牛乳",
-  "乳飲料": "牛乳",
-  "ミルク": "牛乳",
-  "牛乳": "牛乳",
-
-  // ヨーグルト
-  "飲むヨーグルト": "ヨーグルト",
-  "のむヨーグルト": "ヨーグルト",
-  "ギリシャヨーグルト": "ヨーグルト",
-  "プレーンヨーグルト": "ヨーグルト",
-  "ヨーグルト": "ヨーグルト",
-
-  // チーズ
-  "スライスチーズ": "チーズ",
-  "とろけるチーズ": "チーズ",
-  "ピザ用チーズ": "チーズ",
-  "粉チーズ": "チーズ",
-  "クリームチーズ": "チーズ",
-  "カッテージチーズ": "チーズ",
-  "モッツァレラチーズ": "チーズ",
-  "モッツァレラ": "チーズ",
-  "カマンベールチーズ": "チーズ",
-  "カマンベール": "チーズ",
-  "チーズ": "チーズ",
-
-  // バター
-  "無塩バター": "バター",
-  "有塩バター": "バター",
-  "発酵バター": "バター",
-  "マーガリン": "バター",
-  "バター": "バター",
-
-  // 生クリーム
-  "ホイップクリーム": "生クリーム",
-  "ホイップ": "生クリーム",
-  "生クリーム": "生クリーム",
-
-  // その他
-  "練乳": "その他",
-  "コンデンスミルク": "その他"
+  "温泉卵": "卵", "温泉たまご": "卵", "ゆで卵": "卵", "ゆでたまご": "卵",
+  "煮卵": "卵", "味付け卵": "卵", "味玉": "卵", "生卵": "卵", "たまご": "卵", "タマゴ": "卵", "卵": "卵",
+  "飲むヨーグルト": "ヨーグルト", "のむヨーグルト": "ヨーグルト", "ギリシャヨーグルト": "ヨーグルト",
+  "プレーンヨーグルト": "ヨーグルト", "ヨーグルト": "ヨーグルト",
+  "スライスチーズ": "チーズ", "とろけるチーズ": "チーズ", "ピザ用チーズ": "チーズ", "粉チーズ": "チーズ",
+  "クリームチーズ": "チーズ", "カッテージチーズ": "チーズ", "モッツァレラチーズ": "チーズ",
+  "モッツァレラ": "チーズ", "カマンベールチーズ": "チーズ", "カマンベール": "チーズ", "チーズ": "チーズ",
+  "無塩バター": "バター", "有塩バター": "バター", "発酵バター": "バター", "マーガリン": "バター", "バター": "バター",
+  "ホイップクリーム": "生クリーム", "ホイップ": "生クリーム", "生クリーム": "生クリーム",
+  "練乳": "その他", "コンデンスミルク": "その他"
 };
+
 const stapleDatabase = {
-  // 白米
-  "白米": "白米",
-  "ご飯": "白米",
-  "ごはん": "白米",
-  "ライス": "白米",
-  "米": "白米",
-
-  // 玄米
-  "玄米": "玄米",
-
-  // もち米
-  "もち米": "もち米",
-
-  // 食パン
-  "食パン": "食パン",
-  "トースト": "食パン",
-
-  // 菓子パン
-  "菓子パン": "菓子パン",
-  "あんぱん": "菓子パン",
-  "アンパン": "菓子パン",
-  "クリームパン": "菓子パン",
-  "メロンパン": "菓子パン",
-  "クロワッサン": "菓子パン",
-  "ロールパン": "菓子パン",
-
-  // パスタ
-  "パスタ": "パスタ",
-  "スパゲッティ": "パスタ",
-  "スパゲティ": "パスタ",
-
-  // うどん
-  "うどん": "うどん",
-
-  // そば
-  "そば": "そば",
-  "蕎麦": "そば",
-
-  // そうめん
-  "そうめん": "そうめん",
-  "素麺": "そうめん",
-
-  // ラーメン
-  "ラーメン": "ラーメン",
-  "中華麺": "ラーメン",
-
-  // 焼きそば
-  "焼きそば": "焼きそば",
-  "やきそば": "焼きそば"
+  "白米": "白米", "ご飯": "白米", "ごはん": "白米", "ライス": "白米", "米": "白米",
+  "玄米": "玄米", "もち米": "もち米", "食パン": "食パン", "トースト": "食パン",
+  "菓子パン": "菓子パン", "あんぱん": "菓子パン", "アンパン": "菓子パン", "クリームパン": "菓子パン",
+  "メロンパン": "菓子パン", "クロワッサン": "菓子パン", "ロールパン": "菓子パン",
+  "パスタ": "パスタ", "スパゲッティ": "パスタ", "スパゲティ": "パスタ",
+  "うどん": "うどん", "そば": "そば", "蕎麦": "そば", "そうめん": "そうめん", "素麺": "そうめん",
+  "ラーメン": "ラーメン", "中華麺": "ラーメン", "焼きそば": "焼きそば", "やきそば": "焼きそば"
 };
-function autoSelectFoodCategory() {
-  const foodName = document
-    .getElementById("foodName")
-    .value
-    .replace(/\s+/g, "")
-    .toLowerCase();
-
-  if (!foodName) {
-    return;
-  }
-
-  const matchedVegetable = Object.keys(vegetableDatabase)
-    .sort(function(a, b) {
-      return b.length - a.length;
-    })
-    .find(function(name) {
-      return foodName.includes(name.toLowerCase());
-    });
-
-  if (matchedVegetable) {
-    document.getElementById("foodCategory").value = "野菜";
-    setDefaultUnitByCategory();
-
-    document.getElementById("foodType").value =
-      vegetableDatabase[matchedVegetable];
-
-    return;
-  }
-
-  const matchedMeat = Object.keys(meatDatabase)
-    .sort(function(a, b) {
-      return b.length - a.length;
-    })
-    .find(function(name) {
-      return foodName.includes(name.toLowerCase());
-    });
-
-  if (matchedMeat) {
-    document.getElementById("foodCategory").value = "肉";
-    setDefaultUnitByCategory();
-
-    document.getElementById("foodType").value =
-      meatDatabase[matchedMeat];
-
-    return;
-  }
-
-  const matchedFish = Object.keys(fishDatabase)
-    .sort(function(a, b) {
-      return b.length - a.length;
-    })
-    .find(function(name) {
-      return foodName.includes(name.toLowerCase());
-    });
-
-  if (matchedFish) {
-    document.getElementById("foodCategory").value = "魚";
-    setDefaultUnitByCategory();
-
-    document.getElementById("foodType").value =
-      fishDatabase[matchedFish];
-  }
-  const matchedDrink = Object.keys(drinkDatabase)
-    .sort(function(a, b) {
-      return b.length - a.length;
-    })
-    .find(function(name) {
-      return foodName.includes(name.toLowerCase());
-    });
-
-  if (matchedDrink) {
-    document.getElementById("foodCategory").value = "飲み物";
-
-    setDefaultUnitByCategory();
-
-    document.getElementById("foodType").value =
-      drinkDatabase[matchedDrink];
-  }
-  const matchedDairy = Object.keys(dairyDatabase)
-    .sort(function(a, b) {
-      return b.length - a.length;
-    })
-    .find(function(name) {
-      return foodName.includes(name.toLowerCase());
-    });
-
-  if (matchedDairy) {
-    document.getElementById("foodCategory").value = "卵・乳製品";
-
-    setDefaultUnitByCategory();
-
-    document.getElementById("foodType").value =
-      dairyDatabase[matchedDairy];
-  }
-
-const matchedStaple = Object.keys(stapleDatabase)
-  .sort(function(a, b) {
-    return b.length - a.length;
-  })
-  .find(function(name) {
-    return foodName.includes(name.toLowerCase());
-  });
-
-if (matchedStaple) {
-  document.getElementById("foodCategory").value = "主食";
-
-  setDefaultUnitByCategory();
-
-  document.getElementById("foodType").value =
-    stapleDatabase[matchedStaple];
-}
-
-}
-function setDefaultUnitByCategory() {
-    const category = document.getElementById("foodCategory").value;
-    const unit = document.getElementById("foodUnit");
-const foodTypeField = document.getElementById("foodTypeField");
-
-
-    const foodType = document.getElementById("foodType");
 
 const foodTypes = {
-  "肉": ["鶏肉", "豚肉", "牛肉", "牛豚合い挽き","ジビエ"],
-  "魚": [
-  "鮭",
-  "マグロ",
-  "サバ",
-  "アジ",
-  "ブリ",
-  "カツオ",
-  "タイ",
-  "イワシ",
-  "サンマ",
-  "タラ",
-  "カレイ",
-  "ヒラメ",
-  "うなぎ",
-  "エビ",
-  "カニ",
-  "イカ",
-  "タコ",
-  "貝類",
-  "刺身",
-  "その他"
-],
-  "野菜": [
-  "葉物",
-  "根菜",
-  "実野菜",
-  "花野菜",
-  "茎野菜",
-  "香味野菜",
-  "豆類",
-  "きのこ",
-  "その他"
-],
-  "果物": ["りんご", "バナナ", "みかん", "ぶどう", "その他"],
-"卵・乳製品": ["卵", "牛乳", "チーズ", "ヨーグルト", "バター", "生クリーム", "その他"],
-"主食": [
-  "白米",
-  "玄米",
-  "もち米",
-  "食パン",
-  "菓子パン",
-  "パスタ",
-  "うどん",
-  "そば",
-  "そうめん",
-  "ラーメン",
-  "焼きそば",
-  "その他"
-],
-"加工食品": [
-    "豆腐",
-    "納豆",
-    "ハム",
-    "ベーコン",
-    "ソーセージ",
-    "ちくわ",
-    "かまぼこ",
-    "キムチ",
-    "漬物",
-    "缶詰",
-    "レトルト食品",
-    "その他"
-],
-"飲み物": [
-  "水",
-  "お茶",
-  "コーヒー",
-  "牛乳",
-  "ジュース",
-  "炭酸飲料",
-  "お酒",
-  "スポーツドリンク",
-  "豆乳",
-  "その他"
-]
+  "肉": ["鶏肉", "豚肉", "牛肉", "牛豚合い挽き", "ジビエ"],
+  "魚": ["鮭", "マグロ", "サバ", "アジ", "ブリ", "カツオ", "タイ", "イワシ", "サンマ", "タラ", "カレイ", "ヒラメ", "うなぎ", "エビ", "カニ", "イカ", "タコ", "貝類", "刺身", "その他"],
+  "野菜": ["葉物", "根菜", "実野菜", "花野菜", "茎野菜", "香味野菜", "豆類", "きのこ", "その他"],
+  "果物": ["りんご", "バナナ", "みかん", "オレンジ", "甘夏", "はっさく", "伊予柑", "デコポン", "ポンカン", "グレープフルーツ", "レモン", "ライム", "ゆず", "すだち", "かぼす", "ぶどう", "いちご", "キウイ", "桃", "梨", "洋梨", "柿", "さくらんぼ", "スイカ", "メロン", "パイナップル", "マンゴー", "ドラゴンフルーツ", "パパイヤ", "ブルーベリー", "ラズベリー", "ブラックベリー", "びわ", "いちじく", "すもも", "プルーン", "ざくろ", "栗", "ココナッツ", "その他"],
+  "卵・乳製品": ["卵", "チーズ", "ヨーグルト", "バター", "生クリーム", "その他"],
+  "主食": ["白米", "玄米", "もち米", "食パン", "菓子パン", "パスタ", "うどん", "そば", "そうめん", "ラーメン", "焼きそば", "その他"],
+  "加工食品": ["豆腐", "納豆", "ハム", "ベーコン", "ソーセージ", "ちくわ", "かまぼこ", "キムチ", "漬物", "缶詰", "レトルト食品", "その他"],
+  "飲み物": ["水", "お茶", "コーヒー", "牛乳", "ジュース", "炭酸飲料", "お酒", "スポーツドリンク", "豆乳", "その他"]
 };
 
-if (foodTypes[category]) {
-  foodTypeField.style.display = "block";
-  foodType.innerHTML = '<option value="">選択してください</option>';
+const foodDatabaseGroups = [
+  { category: "飲み物", data: drinkDatabase },
+  { category: "果物", data: fruitDatabase },
+  { category: "野菜", data: vegetableDatabase },
+  { category: "肉", data: meatDatabase },
+  { category: "魚", data: fishDatabase },
+  { category: "卵・乳製品", data: dairyDatabase },
+  { category: "主食", data: stapleDatabase }
+];
 
-  foodTypes[category].forEach(function(item) {
-    foodType.innerHTML += '<option value="' + item + '">' + item + '</option>';
-  });
-} else {
-  foodTypeField.style.display = "none";
+function normalizeFoodName(value) {
+  return String(value || "").replace(/\s+/g, "").toLowerCase();
 }
-    switch (category) {
-        case "肉":
-        case "魚":
-            unit.value = "g";
-            break;
 
-        case "卵・乳製品":
-            unit.value = "個";
-            break;
+function findFoodMatch(foodName) {
+  for (const group of foodDatabaseGroups) {
+    const matchedName = Object.keys(group.data)
+      .sort(function(a, b) { return b.length - a.length; })
+      .find(function(name) {
+        return foodName.includes(normalizeFoodName(name));
+      });
 
-        case "野菜":
-        case "果物":
-            unit.value = "個";
-            break;
-
-        case "飲み物":
-            unit.value = "ml";
-            break;
-
-        default:
-            unit.value = "個";
-            break;
+    if (matchedName) {
+      const raw = group.data[matchedName];
+      const detail = typeof raw === "string" ? { type: raw } : raw;
+      return {
+        category: group.category,
+        type: detail.type || "",
+        unit: detail.unit || getDefaultUnitForCategory(group.category),
+        location: detail.location || getDefaultLocationForCategory(group.category),
+        matchedName: matchedName
+      };
     }
+  }
+  return null;
 }
+
+function autoSelectFoodCategory() {
+  const foodNameInput = document.getElementById("foodName");
+  const foodName = normalizeFoodName(foodNameInput.value);
+
+  if (!foodName) {
+    foodCategoryManuallyChanged = false;
+    foodTypeManuallyChanged = false;
+    updateAutoDetectNote("");
+    return;
+  }
+
+  const match = findFoodMatch(foodName);
+  if (!match) {
+    updateAutoDetectNote("自動判定できませんでした。カテゴリーと種類は手動で選べます。");
+    return;
+  }
+
+  if (foodCategoryManuallyChanged) {
+    updateAutoDetectNote("手動で選んだカテゴリーを優先しています。");
+    return;
+  }
+
+  document.getElementById("foodCategory").value = match.category;
+  setDefaultUnitByCategory(true);
+
+  if (!foodTypeManuallyChanged) {
+    document.getElementById("foodType").value = match.type;
+  }
+
+  document.getElementById("foodUnit").value = match.unit;
+  document.getElementById("foodLocation").value = match.location;
+  updateAutoDetectNote(match.category + " ＞ " + match.type + "として判定しました");
+}
+
+function handleManualCategoryChange() {
+  foodCategoryManuallyChanged = true;
+  foodTypeManuallyChanged = false;
+  setDefaultUnitByCategory(false);
+  updateAutoDetectNote("手動で選んだカテゴリーを優先しています。");
+}
+
+function handleManualTypeChange() {
+  foodTypeManuallyChanged = true;
+  updateAutoDetectNote("手動で選んだ種類を優先しています。");
+}
+
+function updateAutoDetectNote(message) {
+  const note = document.getElementById("foodAutoDetectNote");
+  if (note) note.textContent = message || "";
+}
+
+function getDefaultUnitForCategory(category) {
+  if (category === "肉" || category === "魚") return "g";
+  if (category === "飲み物") return "ml";
+  if (category === "主食") return "袋";
+  return "個";
+}
+
+function getDefaultLocationForCategory(category) {
+  if (category === "冷凍食品") return "冷凍";
+  if (category === "野菜" || category === "果物") return "野菜室";
+  if (category === "主食") return "常温";
+  return "冷蔵";
+}
+
+function setDefaultUnitByCategory(preserveCurrentValues) {
+  const category = document.getElementById("foodCategory").value;
+  const unit = document.getElementById("foodUnit");
+  const location = document.getElementById("foodLocation");
+  const foodTypeField = document.getElementById("foodTypeField");
+  const foodType = document.getElementById("foodType");
+  const previousType = foodType.value;
+
+  if (foodTypes[category]) {
+    foodTypeField.style.display = "block";
+    foodType.innerHTML = '<option value="">選択してください</option>';
+    foodTypes[category].forEach(function(item) {
+      const option = document.createElement("option");
+      option.value = item;
+      option.textContent = item;
+      foodType.appendChild(option);
+    });
+    if (preserveCurrentValues && foodTypes[category].includes(previousType)) {
+      foodType.value = previousType;
+    }
+  } else {
+    foodTypeField.style.display = "none";
+    foodType.innerHTML = '<option value="">選択してください</option>';
+  }
+
+  if (!preserveCurrentValues) {
+    unit.value = getDefaultUnitForCategory(category);
+    location.value = getDefaultLocationForCategory(category);
+  }
+}
+
+function setExpiryFromToday(daysToAdd) {
+  const date = new Date();
+  date.setHours(0, 0, 0, 0);
+  date.setDate(date.getDate() + Number(daysToAdd || 0));
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  document.getElementById("foodExpiry").value = year + "-" + month + "-" + day;
+}
+
+function populateFoodSuggestions() {
+  const list = document.getElementById("foodSuggestions");
+  if (!list) return;
+  const names = new Set();
+  foodDatabaseGroups.forEach(function(group) {
+    Object.keys(group.data).forEach(function(name) { names.add(name); });
+  });
+  list.innerHTML = Array.from(names)
+    .sort(function(a, b) { return a.localeCompare(b, "ja"); })
+    .map(function(name) { return '<option value="' + escapeHtml(name) + '"></option>'; })
+    .join("");
+}
+
     function escapeHtml(value) {
       return String(value ?? "")
         .replaceAll("&", "&amp;")
@@ -2760,15 +2835,32 @@ if (foodTypes[category]) {
         toast.classList.remove("show");
       }, 2200);
     }
+function createShoppingSeasoningHtml(item) {
+    return (
+      '<article class="food-item safe">' +
+      '<div class="food-heading">' +
+      '<h3 class="food-name">' + escapeHtml(item.name) + '</h3>' +
+      '<span class="status-badge safe">調味料</span>' +
+      '</div>' +
+      '<div class="food-info">保存：' + escapeHtml(item.location || "未設定") +
+      '<br>残量・数量：' + escapeHtml(item.amount || "未入力") + '</div>' +
+      '<div class="item-actions">' +
+      '<button class="small-button" type="button" onclick="toggleBuyNext(' + item.id + ')">✅🛒</button>' +
+      '</div>' +
+      '</article>'
+    );
+}
+
 function renderShoppingList() {
     const shoppingList = document.getElementById("shoppingFoodList");
+    if (!shoppingList) return;
 
     const shoppingFoods = foods.filter(function(food) {
-        return isFoodBuyNext(food);
+        return Boolean(food.shopping || food.buyNext);
     });
 
     const shoppingSeasonings = seasonings.filter(function(item) {
-        return item.buyNext;
+        return Boolean(item.buyNext);
     });
 
     if (shoppingFoods.length === 0 && shoppingSeasonings.length === 0) {
@@ -2779,58 +2871,17 @@ function renderShoppingList() {
     let html = "";
 
     if (shoppingFoods.length > 0) {
-        html +=
-            '<section class="category-block">' +
-            '<div class="category-heading">' +
-            '<h3>食材・飲み物</h3>' +
-            '<span class="category-count">' + shoppingFoods.length + '件</span>' +
-            '</div>' +
-            sortFoodsByExpiry(shoppingFoods)
-                .map(function(food) {
-                    return createFoodHtml(food, false, true);
-                })
-                .join("") +
-            '</section>';
+      html += '<section class="category-block"><div class="category-heading"><h3>食材・飲み物</h3><span class="category-count">' + shoppingFoods.length + '件</span></div>';
+      html += shoppingFoods.map(function(food) {
+        return createFoodHtml(food, false, true);
+      }).join("");
+      html += '</section>';
     }
 
     if (shoppingSeasonings.length > 0) {
-        html +=
-            '<section class="category-block">' +
-            '<div class="category-heading">' +
-            '<h3>調味料</h3>' +
-            '<span class="category-count">' + shoppingSeasonings.length + '件</span>' +
-            '</div>';
-
-        html += shoppingSeasonings
-            .slice()
-            .sort(function(a, b) {
-                return String(a.name).localeCompare(String(b.name), "ja");
-            })
-            .map(function(item) {
-                const amountText = item.amount || "未入力";
-                const locationText = item.location || "未設定";
-
-                return (
-                    '<article class="food-item safe">' +
-                    '<div class="food-heading">' +
-                    '<h3 class="food-name">' + escapeHtml(item.name) + '</h3>' +
-                    '<span class="status-badge safe">調味料</span>' +
-                    '</div>' +
-                    '<div class="food-info">' +
-                    '保存：' + escapeHtml(locationText) + '<br>' +
-                    '残量・数量：' + escapeHtml(amountText) +
-                    '</div>' +
-                    '<div class="item-actions">' +
-                    '<button class="small-button" type="button" onclick="toggleBuyNext(' +
-                    item.id +
-                    ')">✅🛒</button>' +
-                    '</div>' +
-                    '</article>'
-                );
-            })
-            .join("");
-
-        html += '</section>';
+      html += '<section class="category-block"><div class="category-heading"><h3>調味料</h3><span class="category-count">' + shoppingSeasonings.length + '件</span></div>';
+      html += shoppingSeasonings.map(createShoppingSeasoningHtml).join("");
+      html += '</section>';
     }
 
     shoppingList.innerHTML = html;
@@ -2839,6 +2890,8 @@ function renderShoppingList() {
 function showShoppingList() {
     showScreen("shoppingScreen");
 }
+    populateFoodSuggestions();
+    setDefaultUnitByCategory(true);
     renderHome();
   </script>
 </body>
