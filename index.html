@@ -2745,14 +2745,25 @@ function renderShoppingFoodList() {
 
     const shoppingFoodList = document.getElementById("shoppingFoodList");
 
-    if (shoppingFoods.length === 0) {
-        shoppingFoodList.innerHTML = createEmptyHtml("買い物リストは空です。");
-        return;
-    }
+    const shoppingSeasonings = seasonings.filter(function(item) {
+    return item.buyNext;
+});
 
-    shoppingFoodList.innerHTML = shoppingFoods
+if (shoppingFoods.length === 0 && shoppingSeasonings.length === 0) {
+    shoppingFoodList.innerHTML = createEmptyHtml("買い物リストは空です。");
+    return;
+}
+  
+
+shoppingFoodList.innerHTML =
+    shoppingFoods
         .map(function(food) {
             return createFoodHtml(food, false);
+        })
+        .join("") +
+    shoppingSeasonings
+        .map(function(item) {
+            return createSeasoningHtml(item);
         })
         .join("");
 }
