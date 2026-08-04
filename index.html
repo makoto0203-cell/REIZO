@@ -584,6 +584,52 @@
       font-weight: 800;
     }
 
+
+    .suggestion-label {
+      margin: 7px 0 6px;
+      color: var(--subtext);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .suggestion-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 7px;
+    }
+
+    .suggestion-button {
+      padding: 8px 11px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--main-dark);
+      background: white;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .suggestion-button.learned {
+      border-color: var(--main);
+      background: var(--main-light);
+    }
+
+    .learning-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+      color: var(--subtext);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .learning-toggle input {
+      width: auto;
+      margin: 0;
+    }
+
     @media (max-width: 390px) {
       .two-columns,
       .button-row {
@@ -776,7 +822,7 @@
           <div class="field">
             <label for="foodLocation">保存場所</label>
 
-            <select id="foodLocation">
+            <select id="foodLocation" onchange="handleManualLocationChange()">
               <option value="冷蔵">冷蔵</option>
               <option value="冷凍">冷凍</option>
               <option value="野菜室">野菜室</option>
@@ -802,7 +848,7 @@
           <div class="field">
             <label for="foodUnit">単位</label>
 
-            <select id="foodUnit">
+            <select id="foodUnit" onchange="handleManualUnitChange()">
               <option value="g">g</option>
               <option value="kg">kg</option>
               <option value="個">個</option>
@@ -820,18 +866,23 @@
           </div>
         </div>
 
+        <div id="amountSuggestionArea" class="field" style="display:none;">
+          <div class="suggestion-label">数量候補（候補外は手入力できます）</div>
+          <div id="amountSuggestionButtons" class="suggestion-row"></div>
+        </div>
+
         <div class="field">
           <label for="foodExpiry">
             賞味期限・消費期限<span class="required">必須</span>
           </label>
 
           <input id="foodExpiry" type="date">
-          <div class="quick-date-row" aria-label="期限のクイック入力">
-            <button class="quick-date-button" type="button" onclick="setExpiryFromToday(0)">今日</button>
-            <button class="quick-date-button" type="button" onclick="setExpiryFromToday(1)">明日</button>
-            <button class="quick-date-button" type="button" onclick="setExpiryFromToday(3)">3日後</button>
-            <button class="quick-date-button" type="button" onclick="setExpiryFromToday(7)">1週間後</button>
-          </div>
+          <div class="suggestion-label">期限をすばやく入力</div>
+          <div id="expirySuggestionButtons" class="quick-date-row" aria-label="期限のクイック入力"></div>
+          <label class="learning-toggle">
+            <input id="foodLearningEnabled" type="checkbox" checked onchange="toggleFoodLearning()">
+            よく使う数量・期限・保存場所を優先する
+          </label>
         </div>
 
         <div class="field">
@@ -1076,6 +1127,8 @@
   <script>
     const FOOD_STORAGE_KEY = "reizo_foods_v1";
     const SEASONING_STORAGE_KEY = "reizo_seasonings_v1";
+    const FOOD_PREFERENCES_STORAGE_KEY = "reizo_food_preferences_v1";
+    const FOOD_LEARNING_ENABLED_KEY = "reizo_food_learning_enabled_v1";
 
     let foods = readStorage(FOOD_STORAGE_KEY);
     let seasonings = readStorage(SEASONING_STORAGE_KEY);
@@ -1083,6 +1136,10 @@
     let toastTimer = null;
     let foodCategoryManuallyChanged = false;
     let foodTypeManuallyChanged = false;
+    let foodUnitManuallyChanged = false;
+    let foodLocationManuallyChanged = false;
+    let foodPreferences = readObjectStorage(FOOD_PREFERENCES_STORAGE_KEY);
+    let foodLearningEnabled = localStorage.getItem(FOOD_LEARNING_ENABLED_KEY) !== "false";
 
     function readStorage(key) {
       try {
@@ -1090,6 +1147,15 @@
         return Array.isArray(data) ? data : [];
       } catch (error) {
         return [];
+      }
+    }
+
+    function readObjectStorage(key) {
+      try {
+        const data = JSON.parse(localStorage.getItem(key));
+        return data && typeof data === "object" && !Array.isArray(data) ? data : {};
+      } catch (error) {
+        return {};
       }
     }
 
@@ -1214,6 +1280,8 @@ urgentList.innerHTML =
       document.getElementById("foodSaveButton").textContent =
         "登録する";
 
+      syncFoodLearningToggle();
+      renderFoodInputSuggestions();
       showScreen("addScreen");
     }
 
@@ -1347,6 +1415,7 @@ urgentList.innerHTML =
         showToast("食材を登録しました");
       }
 
+      learnFoodPreferences(name, amount, unit, expiry, purchaseDate, location);
       saveFoods();
       resetFoodForm();
       showScreen("homeScreen");
@@ -2132,10 +2201,10 @@ const vegetableDatabase = {
   // 実野菜
   "ミニトマト": "実野菜",
   "トマト": "実野菜",
+  "アボカド": "実野菜",
   "きゅうり": "実野菜",
   "キュウリ": "実野菜",
   "なす": "実野菜",
-  "アボカド": "実野菜",
   "ナス": "実野菜",
   "ピーマン": "実野菜",
   "パプリカ": "実野菜",
@@ -2697,18 +2766,23 @@ function autoSelectFoodCategory() {
   if (!foodName) {
     foodCategoryManuallyChanged = false;
     foodTypeManuallyChanged = false;
+    foodUnitManuallyChanged = false;
+    foodLocationManuallyChanged = false;
     updateAutoDetectNote("");
+    renderFoodInputSuggestions();
     return;
   }
 
   const match = findFoodMatch(foodName);
   if (!match) {
     updateAutoDetectNote("自動判定できませんでした。カテゴリーと種類は手動で選べます。");
+    renderFoodInputSuggestions();
     return;
   }
 
   if (foodCategoryManuallyChanged) {
     updateAutoDetectNote("手動で選んだカテゴリーを優先しています。");
+    renderFoodInputSuggestions();
     return;
   }
 
@@ -2719,9 +2793,14 @@ function autoSelectFoodCategory() {
     document.getElementById("foodType").value = match.type;
   }
 
-  document.getElementById("foodUnit").value = match.unit;
-  document.getElementById("foodLocation").value = match.location;
+  if (!foodUnitManuallyChanged) {
+    document.getElementById("foodUnit").value = match.unit;
+  }
+  if (!foodLocationManuallyChanged) {
+    document.getElementById("foodLocation").value = getLearnedLocation(foodName) || match.location;
+  }
   updateAutoDetectNote(match.category + " ＞ " + match.type + "として判定しました");
+  renderFoodInputSuggestions();
 }
 
 function handleManualCategoryChange() {
@@ -2729,12 +2808,23 @@ function handleManualCategoryChange() {
   foodTypeManuallyChanged = false;
   setDefaultUnitByCategory(false);
   updateAutoDetectNote("手動で選んだカテゴリーを優先しています。");
+  renderFoodInputSuggestions();
 }
 
 function handleManualTypeChange() {
   foodTypeManuallyChanged = true;
   updateAutoDetectNote("手動で選んだ種類を優先しています。");
+  renderFoodInputSuggestions();
 }
+
+function handleManualUnitChange() {
+  foodUnitManuallyChanged = true;
+}
+
+function handleManualLocationChange() {
+  foodLocationManuallyChanged = true;
+}
+
 
 function updateAutoDetectNote(message) {
   const note = document.getElementById("foodAutoDetectNote");
@@ -2784,6 +2874,290 @@ function setDefaultUnitByCategory(preserveCurrentValues) {
     unit.value = getDefaultUnitForCategory(category);
     location.value = getDefaultLocationForCategory(category);
   }
+}
+
+function getFoodPreferenceKey(name) {
+  return normalizeFoodName(name || document.getElementById("foodName").value);
+}
+
+function getPreferenceBucket(name) {
+  const key = getFoodPreferenceKey(name);
+  if (!key) return null;
+  if (!foodPreferences[key]) {
+    foodPreferences[key] = { amounts: {}, locations: {}, expiryDays: {} };
+  }
+  return foodPreferences[key];
+}
+
+function incrementPreference(bucket, groupName, value) {
+  if (!bucket || value === undefined || value === null || value === "") return;
+  if (!bucket[groupName]) bucket[groupName] = {};
+  const key = String(value);
+  bucket[groupName][key] = Number(bucket[groupName][key] || 0) + 1;
+}
+
+function getMostUsedValue(values) {
+  if (!values || typeof values !== "object") return "";
+  return Object.keys(values).sort(function(a, b) {
+    return Number(values[b] || 0) - Number(values[a] || 0);
+  })[0] || "";
+}
+
+function getLearnedLocation(name) {
+  if (!foodLearningEnabled) return "";
+  const bucket = foodPreferences[getFoodPreferenceKey(name)];
+  return bucket ? getMostUsedValue(bucket.locations) : "";
+}
+
+function learnFoodPreferences(name, amount, unit, expiry, purchaseDate, location) {
+  if (!foodLearningEnabled) return;
+  const bucket = getPreferenceBucket(name);
+  if (!bucket) return;
+
+  if (String(amount).trim() !== "") {
+    incrementPreference(bucket, "amounts", String(amount) + "|" + String(unit || ""));
+  }
+  incrementPreference(bucket, "locations", location);
+
+  if (expiry) {
+    const base = purchaseDate ? new Date(purchaseDate + "T00:00:00") : new Date();
+    base.setHours(0, 0, 0, 0);
+    const expiryDate = new Date(expiry + "T00:00:00");
+    const days = Math.round((expiryDate - base) / 86400000);
+    if (Number.isFinite(days) && days >= 0 && days <= 3650) {
+      incrementPreference(bucket, "expiryDays", days);
+    }
+  }
+
+  localStorage.setItem(FOOD_PREFERENCES_STORAGE_KEY, JSON.stringify(foodPreferences));
+}
+
+function toggleFoodLearning() {
+  const checkbox = document.getElementById("foodLearningEnabled");
+  foodLearningEnabled = checkbox ? checkbox.checked : true;
+  localStorage.setItem(FOOD_LEARNING_ENABLED_KEY, String(foodLearningEnabled));
+  renderFoodInputSuggestions();
+}
+
+function syncFoodLearningToggle() {
+  const checkbox = document.getElementById("foodLearningEnabled");
+  if (checkbox) checkbox.checked = foodLearningEnabled;
+}
+
+function makeAmountCandidate(amount, unit) {
+  return { amount: String(amount), unit: unit, label: String(amount) + unit };
+}
+
+function getBaseAmountCandidates() {
+  const name = normalizeFoodName(
+    document.getElementById("foodName").value
+  );
+  const category = document.getElementById("foodCategory").value;
+  const type = document.getElementById("foodType").value;
+
+  if (!name) {
+    return [];
+  }
+
+  // 今回は「卵・乳製品」と牛乳だけを対象にする。
+  // 他カテゴリーの数量候補は、カテゴリーごとに確認しながら後から追加する。
+
+  if (
+    name.includes("温泉卵") ||
+    name.includes("温泉たまご") ||
+    name.includes("ゆで卵") ||
+    name.includes("ゆでたまご") ||
+    name.includes("煮卵") ||
+    name.includes("味付け卵") ||
+    name.includes("味玉") ||
+    name.includes("生卵") ||
+    name.includes("たまご") ||
+    name.includes("タマゴ") ||
+    name === "卵" ||
+    type === "卵"
+  ) {
+    return [4, 6, 8, 10, 12].map(function(value) {
+      return makeAmountCandidate(value, "個");
+    });
+  }
+
+  if (
+    name.includes("低脂肪乳") ||
+    name.includes("無脂肪乳") ||
+    name.includes("加工乳") ||
+    name.includes("乳飲料") ||
+    name.includes("ミルク") ||
+    name.includes("牛乳") ||
+    type === "牛乳"
+  ) {
+    return [250, 500, 1000].map(function(value) {
+      return makeAmountCandidate(value, "ml");
+    });
+  }
+
+  if (
+    name.includes("飲むヨーグルト") ||
+    name.includes("のむヨーグルト") ||
+    name.includes("ギリシャヨーグルト") ||
+    name.includes("プレーンヨーグルト") ||
+    name.includes("ヨーグルト") ||
+    type === "ヨーグルト"
+  ) {
+    return [
+      makeAmountCandidate(1, "個"),
+      makeAmountCandidate(3, "個"),
+      makeAmountCandidate(4, "個"),
+      makeAmountCandidate(400, "g"),
+      makeAmountCandidate(500, "g")
+    ];
+  }
+
+  if (
+    name.includes("スライスチーズ") ||
+    name.includes("とろけるチーズ") ||
+    name.includes("ピザ用チーズ") ||
+    name.includes("粉チーズ") ||
+    name.includes("クリームチーズ") ||
+    name.includes("カッテージチーズ") ||
+    name.includes("モッツァレラ") ||
+    name.includes("カマンベール") ||
+    name.includes("チーズ") ||
+    type === "チーズ"
+  ) {
+    return [
+      makeAmountCandidate(1, "袋"),
+      makeAmountCandidate(1, "パック"),
+      makeAmountCandidate(6, "枚"),
+      makeAmountCandidate(10, "枚"),
+      makeAmountCandidate(200, "g")
+    ];
+  }
+
+  if (
+    name.includes("無塩バター") ||
+    name.includes("有塩バター") ||
+    name.includes("発酵バター") ||
+    name.includes("マーガリン") ||
+    name.includes("バター") ||
+    type === "バター"
+  ) {
+    return [100, 150, 200, 450].map(function(value) {
+      return makeAmountCandidate(value, "g");
+    });
+  }
+
+  if (
+    name.includes("ホイップクリーム") ||
+    name.includes("ホイップ") ||
+    name.includes("生クリーム") ||
+    type === "生クリーム"
+  ) {
+    return [100, 200, 500].map(function(value) {
+      return makeAmountCandidate(value, "ml");
+    });
+  }
+
+  if (
+    name.includes("練乳") ||
+    name.includes("コンデンスミルク") ||
+    (category === "卵・乳製品" && type === "その他")
+  ) {
+    return [
+      makeAmountCandidate(1, "本"),
+      makeAmountCandidate(120, "g"),
+      makeAmountCandidate(180, "g")
+    ];
+  }
+
+  return [];
+}
+
+function getLearnedAmountCandidate() {
+  if (!foodLearningEnabled) return null;
+  const bucket = foodPreferences[getFoodPreferenceKey()];
+  const value = bucket ? getMostUsedValue(bucket.amounts) : "";
+  if (!value) return null;
+  const parts = value.split("|");
+  return { amount: parts[0], unit: parts.slice(1).join("|"), label: parts[0] + parts.slice(1).join("|"), learned: true };
+}
+
+function renderAmountSuggestions() {
+  const area = document.getElementById("amountSuggestionArea");
+  const container = document.getElementById("amountSuggestionButtons");
+  if (!area || !container) return;
+
+  const candidates = getBaseAmountCandidates();
+  const learned = getLearnedAmountCandidate();
+  const combined = [];
+  if (learned) combined.push(learned);
+  candidates.forEach(function(candidate) {
+    if (!combined.some(function(item) { return item.amount === candidate.amount && item.unit === candidate.unit; })) {
+      combined.push(candidate);
+    }
+  });
+
+  const visible = combined.slice(0, 5);
+  area.style.display = visible.length ? "block" : "none";
+  container.innerHTML = visible.map(function(candidate) {
+    const learnedClass = candidate.learned ? " learned" : "";
+    const star = candidate.learned ? "⭐ " : "";
+    return '<button class="suggestion-button' + learnedClass + '" type="button" onclick="applyAmountSuggestion(\'' +
+      escapeForAttribute(candidate.amount) + '\',\'' + escapeForAttribute(candidate.unit) + '\')">' +
+      star + escapeHtml(candidate.label) + '</button>';
+  }).join("");
+}
+
+function applyAmountSuggestion(amount, unit) {
+  document.getElementById("foodAmount").value = amount;
+  document.getElementById("foodUnit").value = unit;
+  foodUnitManuallyChanged = true;
+}
+
+function getBaseExpiryCandidates() {
+  const category = document.getElementById("foodCategory").value;
+  const type = document.getElementById("foodType").value;
+  if (category === "肉" || category === "魚") return [0, 1, 3];
+  if (category === "冷凍食品") return [7, 30, 90];
+  if (type === "牛乳" || type === "ヨーグルト" || category === "卵・乳製品") return [3, 7, 14];
+  if (category === "飲み物" || category === "調味料") return [7, 30, 90];
+  return [0, 1, 3, 7];
+}
+
+function formatExpiryCandidate(days) {
+  if (days === 0) return "今日";
+  if (days === 1) return "明日";
+  if (days === 7) return "1週間後";
+  if (days === 14) return "2週間後";
+  if (days === 30) return "1か月後";
+  if (days === 90) return "3か月後";
+  return days + "日後";
+}
+
+function getLearnedExpiryDays() {
+  if (!foodLearningEnabled) return null;
+  const bucket = foodPreferences[getFoodPreferenceKey()];
+  const value = bucket ? getMostUsedValue(bucket.expiryDays) : "";
+  return value === "" ? null : Number(value);
+}
+
+function renderExpirySuggestions() {
+  const container = document.getElementById("expirySuggestionButtons");
+  if (!container) return;
+  const learned = getLearnedExpiryDays();
+  const days = [];
+  if (learned !== null && Number.isFinite(learned)) days.push({ days: learned, learned: true });
+  getBaseExpiryCandidates().forEach(function(value) {
+    if (!days.some(function(item) { return item.days === value; })) days.push({ days: value, learned: false });
+  });
+  container.innerHTML = days.slice(0, 4).map(function(item) {
+    return '<button class="quick-date-button' + (item.learned ? ' learned' : '') + '" type="button" onclick="setExpiryFromToday(' + item.days + ')">' +
+      (item.learned ? '⭐ ' : '') + escapeHtml(formatExpiryCandidate(item.days)) + '</button>';
+  }).join("");
+}
+
+function renderFoodInputSuggestions() {
+  renderAmountSuggestions();
+  renderExpirySuggestions();
 }
 
 function setExpiryFromToday(daysToAdd) {
@@ -2893,6 +3267,8 @@ function showShoppingList() {
 }
     populateFoodSuggestions();
     setDefaultUnitByCategory(true);
+    syncFoodLearningToggle();
+    renderFoodInputSuggestions();
     renderHome();
   </script>
 </body>
