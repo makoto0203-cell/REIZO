@@ -615,6 +615,21 @@
       background: var(--main-light);
     }
 
+    .drink-variant-card {
+      margin-top: 10px;
+      padding: 11px;
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      background: #f8fbfa;
+    }
+
+    .drink-capacity-display {
+      margin-top: 8px;
+      color: var(--main-dark);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
     .learning-toggle {
       display: flex;
       align-items: center;
@@ -789,6 +804,13 @@
           >
           <datalist id="foodSuggestions"></datalist>
           <div id="foodAutoDetectNote" class="auto-detect-note"></div>
+          <div id="drinkVariantSuggestionArea" class="drink-variant-card" style="display:none;">
+            <div class="suggestion-label">商品・容量候補</div>
+            <div id="drinkVariantSuggestionButtons" class="suggestion-row"></div>
+            <div id="drinkCapacityDisplay" class="drink-capacity-display"></div>
+          </div>
+          <input id="foodCapacity" type="hidden">
+          <input id="drinkVariantLearningKey" type="hidden">
         </div>
 
         <div class="two-columns">
@@ -1129,6 +1151,7 @@
     const SEASONING_STORAGE_KEY = "reizo_seasonings_v1";
     const FOOD_PREFERENCES_STORAGE_KEY = "reizo_food_preferences_v1";
     const FOOD_LEARNING_ENABLED_KEY = "reizo_food_learning_enabled_v1";
+    const DRINK_VARIANT_PREFERENCES_STORAGE_KEY = "reizo_drink_variant_preferences_v1";
 
     let foods = readStorage(FOOD_STORAGE_KEY);
     let seasonings = readStorage(SEASONING_STORAGE_KEY);
@@ -1140,6 +1163,7 @@
     let foodLocationManuallyChanged = false;
     let foodPreferences = readObjectStorage(FOOD_PREFERENCES_STORAGE_KEY);
     let foodLearningEnabled = localStorage.getItem(FOOD_LEARNING_ENABLED_KEY) !== "false";
+    let drinkVariantPreferences = readObjectStorage(DRINK_VARIANT_PREFERENCES_STORAGE_KEY);
 
     function readStorage(key) {
       try {
@@ -1319,6 +1343,10 @@ urgentList.innerHTML =
       document.getElementById("foodNote").value =
         food.note || "";
 
+      document.getElementById("foodCapacity").value = food.capacity || "";
+      document.getElementById("drinkVariantLearningKey").value = food.drinkVariantLearningKey || "";
+      renderDrinkVariantSuggestions();
+
       document.getElementById("foodFormTitle").textContent =
         "食材を編集";
 
@@ -1326,6 +1354,8 @@ urgentList.innerHTML =
         "変更を保存";
       foodCategoryManuallyChanged = false;
       foodTypeManuallyChanged = false;
+      foodUnitManuallyChanged = false;
+      foodLocationManuallyChanged = false;
       updateAutoDetectNote("");
 
       showScreen("addScreen");
@@ -1352,6 +1382,12 @@ urgentList.innerHTML =
 
       const unit =
         document.getElementById("foodUnit").value;
+
+      const capacity =
+        document.getElementById("foodCapacity").value;
+
+      const drinkVariantLearningKey =
+        document.getElementById("drinkVariantLearningKey").value;
 
       const expiry =
         document.getElementById("foodExpiry").value;
@@ -1388,6 +1424,8 @@ urgentList.innerHTML =
             location: location,
             amount: amount,
             unit: unit,
+            capacity: capacity,
+            drinkVariantLearningKey: drinkVariantLearningKey,
             expiry: expiry,
             purchaseDate: purchaseDate,
             note: note,
@@ -1405,6 +1443,8 @@ urgentList.innerHTML =
           location: location,
           amount: amount,
           unit: unit,
+          capacity: capacity,
+          drinkVariantLearningKey: drinkVariantLearningKey,
           expiry: expiry,
           purchaseDate: purchaseDate,
           note: note,
@@ -1416,6 +1456,7 @@ urgentList.innerHTML =
       }
 
       learnFoodPreferences(name, amount, unit, expiry, purchaseDate, location);
+      learnDrinkVariant(drinkVariantLearningKey, name, capacity);
       saveFoods();
       resetFoodForm();
       showScreen("homeScreen");
@@ -1438,6 +1479,8 @@ urgentList.innerHTML =
       document.getElementById("foodExpiry").value = "";
       document.getElementById("foodPurchaseDate").value = "";
       document.getElementById("foodNote").value = "";
+      document.getElementById("foodCapacity").value = "";
+      document.getElementById("drinkVariantLearningKey").value = "";
       foodCategoryManuallyChanged = false;
       foodTypeManuallyChanged = false;
       updateAutoDetectNote("");
@@ -1703,6 +1746,7 @@ food.id +
         "<br>" +
         "数量：" +
         escapeHtml(amountText) +
+        (food.capacity ? "<br>容量：" + escapeHtml(food.capacity) : "") +
         "<br>" +
         "期限：" +
         escapeHtml(food.expiry) +
@@ -2876,6 +2920,170 @@ function setDefaultUnitByCategory(preserveCurrentValues) {
   }
 }
 
+const drinkVariantDatabase = [
+  { keys: ["コーラ", "コカコーラ", "cocacola"], variants: [
+    { name: "コカ・コーラ", capacity: "500ml", type: "炭酸飲料" },
+    { name: "コカ・コーラ", capacity: "700ml", type: "炭酸飲料" },
+    { name: "コカ・コーラ", capacity: "1.5L", type: "炭酸飲料" },
+    { name: "コカ・コーラ", capacity: "2L", type: "炭酸飲料" },
+    { name: "ペプシ", capacity: "600ml", type: "炭酸飲料" }
+  ]},
+  { keys: ["ファンタ"], variants: [
+    { name: "ファンタ", capacity: "500ml", type: "炭酸飲料" },
+    { name: "ファンタ", capacity: "700ml", type: "炭酸飲料" },
+    { name: "ファンタ", capacity: "1.5L", type: "炭酸飲料" }
+  ]},
+  { keys: ["水", "天然水", "ミネラルウォーター", "いろはす"], variants: [
+    { name: "水", capacity: "500ml", type: "水" },
+    { name: "水", capacity: "600ml", type: "水" },
+    { name: "水", capacity: "2L", type: "水" },
+    { name: "い・ろ・は・す", capacity: "540ml", type: "水" }
+  ]},
+  { keys: ["お茶", "緑茶", "麦茶", "烏龍茶", "綾鷹", "伊右衛門", "おーいお茶", "お〜いお茶"], variants: [
+    { name: "お茶", capacity: "500ml", type: "お茶" },
+    { name: "お茶", capacity: "600ml", type: "お茶" },
+    { name: "お茶", capacity: "2L", type: "お茶" },
+    { name: "綾鷹", capacity: "650ml", type: "お茶" },
+    { name: "伊右衛門", capacity: "600ml", type: "お茶" }
+  ]},
+  { keys: ["コーヒー", "boss", "ボス", "ジョージア", "ワンダ", "ucc"], variants: [
+    { name: "コーヒー", capacity: "185ml", type: "コーヒー" },
+    { name: "コーヒー", capacity: "500ml", type: "コーヒー" },
+    { name: "コーヒー", capacity: "900ml", type: "コーヒー" },
+    { name: "クラフトボス", capacity: "500ml", type: "コーヒー" }
+  ]},
+  { keys: ["ジュース", "カルピス", "なっちゃん", "qoo", "野菜生活", "トロピカーナ"], variants: [
+    { name: "ジュース", capacity: "200ml", type: "ジュース" },
+    { name: "ジュース", capacity: "500ml", type: "ジュース" },
+    { name: "ジュース", capacity: "1L", type: "ジュース" },
+    { name: "カルピスウォーター", capacity: "500ml", type: "ジュース" }
+  ]},
+  { keys: ["レッドブル", "redbull", "モンスター", "monster"], variants: [
+    { name: "レッドブル", capacity: "250ml", type: "ジュース" },
+    { name: "レッドブル", capacity: "355ml", type: "ジュース" },
+    { name: "モンスター", capacity: "355ml", type: "ジュース" },
+    { name: "モンスター", capacity: "500ml", type: "ジュース" }
+  ]},
+  { keys: ["ポカリ", "ポカリスエット", "アクエリアス", "スポーツドリンク", "グリーンダカラ"], variants: [
+    { name: "スポーツドリンク", capacity: "500ml", type: "スポーツドリンク" },
+    { name: "スポーツドリンク", capacity: "900ml", type: "スポーツドリンク" },
+    { name: "スポーツドリンク", capacity: "2L", type: "スポーツドリンク" },
+    { name: "ポカリスエット", capacity: "500ml", type: "スポーツドリンク" },
+    { name: "アクエリアス", capacity: "500ml", type: "スポーツドリンク" }
+  ]},
+  { keys: ["豆乳", "調製豆乳", "無調整豆乳"], variants: [
+    { name: "豆乳", capacity: "200ml", type: "豆乳" },
+    { name: "豆乳", capacity: "500ml", type: "豆乳" },
+    { name: "豆乳", capacity: "1L", type: "豆乳" }
+  ]},
+  { keys: ["ビール", "チューハイ", "ハイボール", "氷結", "ほろよい", "お酒"], variants: [
+    { name: "ビール", capacity: "350ml", type: "お酒" },
+    { name: "ビール", capacity: "500ml", type: "お酒" },
+    { name: "チューハイ", capacity: "350ml", type: "お酒" },
+    { name: "ハイボール", capacity: "350ml", type: "お酒" },
+    { name: "ハイボール", capacity: "500ml", type: "お酒" }
+  ]},
+  { keys: ["牛乳", "ミルク", "低脂肪乳", "無脂肪乳"], variants: [
+    { name: "牛乳", capacity: "250ml", type: "牛乳" },
+    { name: "牛乳", capacity: "500ml", type: "牛乳" },
+    { name: "牛乳", capacity: "1000ml", type: "牛乳" }
+  ]}
+];
+
+function findDrinkVariantGroup(inputName) {
+  const normalized = normalizeFoodName(inputName);
+  if (!normalized) return null;
+  return drinkVariantDatabase.find(function(group) {
+    return group.keys.some(function(key) {
+      return normalized.includes(normalizeFoodName(key));
+    });
+  }) || null;
+}
+
+function getDrinkVariantPreferenceKey() {
+  return document.getElementById("drinkVariantLearningKey").value || normalizeFoodName(document.getElementById("foodName").value);
+}
+
+function getLearnedDrinkVariant(key) {
+  if (!foodLearningEnabled || !key) return "";
+  const bucket = drinkVariantPreferences[key];
+  if (!bucket || typeof bucket !== "object") return "";
+  const entries = Object.keys(bucket).map(function(value) {
+    return { value: value, count: Number(bucket[value] || 0) };
+  }).sort(function(a, b) { return b.count - a.count; });
+  if (!entries.length || entries[0].count < 3) return "";
+  if (entries[1] && entries[1].count === entries[0].count) return "";
+  return entries[0].value;
+}
+
+function renderDrinkVariantSuggestions() {
+  const area = document.getElementById("drinkVariantSuggestionArea");
+  const container = document.getElementById("drinkVariantSuggestionButtons");
+  const capacityDisplay = document.getElementById("drinkCapacityDisplay");
+  if (!area || !container || !capacityDisplay) return;
+
+  const foodName = document.getElementById("foodName").value;
+  const category = document.getElementById("foodCategory").value;
+  const group = findDrinkVariantGroup(foodName);
+  const selectedCapacity = document.getElementById("foodCapacity").value;
+
+  if (!group || category !== "飲み物") {
+    area.style.display = "none";
+    container.innerHTML = "";
+    capacityDisplay.textContent = "";
+    if (category !== "飲み物") document.getElementById("foodCapacity").value = "";
+    return;
+  }
+
+  const existingKey = document.getElementById("drinkVariantLearningKey").value;
+  const key = selectedCapacity && existingKey ? existingKey : normalizeFoodName(foodName);
+  document.getElementById("drinkVariantLearningKey").value = key;
+  const learnedValue = getLearnedDrinkVariant(key);
+  const variants = group.variants.slice().sort(function(a, b) {
+    const av = a.name + "|" + a.capacity;
+    const bv = b.name + "|" + b.capacity;
+    if (av === learnedValue) return -1;
+    if (bv === learnedValue) return 1;
+    return 0;
+  }).slice(0, 5);
+
+  area.style.display = "block";
+  container.innerHTML = variants.map(function(variant) {
+    const value = variant.name + "|" + variant.capacity;
+    const learned = value === learnedValue;
+    return '<button class="suggestion-button' + (learned ? ' learned' : '') + '" type="button" onclick="applyDrinkVariant(\'' +
+      escapeForAttribute(variant.name) + '\',\'' + escapeForAttribute(variant.capacity) + '\',\'' + escapeForAttribute(variant.type) + '\')">' +
+      (learned ? '⭐ ' : '') + escapeHtml(variant.name + " " + variant.capacity) + '</button>';
+  }).join("");
+  capacityDisplay.textContent = selectedCapacity ? "選択中の容量：" + selectedCapacity : "容量を選ぶと、数量は本数で入力できます";
+}
+
+function applyDrinkVariant(name, capacity, type) {
+  const learningKey = document.getElementById("drinkVariantLearningKey").value ||
+    normalizeFoodName(document.getElementById("foodName").value);
+  document.getElementById("foodName").value = name;
+  document.getElementById("foodCategory").value = "飲み物";
+  setDefaultUnitByCategory(true);
+  document.getElementById("foodType").value = type;
+  document.getElementById("foodLocation").value = "冷蔵";
+  document.getElementById("foodCapacity").value = capacity;
+  document.getElementById("drinkVariantLearningKey").value = learningKey;
+  document.getElementById("foodAmount").value = "1";
+  document.getElementById("foodUnit").value = "本";
+  foodUnitManuallyChanged = true;
+  foodLocationManuallyChanged = true;
+  updateAutoDetectNote("飲み物 ＞ " + type + "として判定しました");
+  renderFoodInputSuggestions();
+}
+
+function learnDrinkVariant(key, name, capacity) {
+  if (!foodLearningEnabled || !key || !capacity) return;
+  if (!drinkVariantPreferences[key]) drinkVariantPreferences[key] = {};
+  const value = String(name) + "|" + String(capacity);
+  drinkVariantPreferences[key][value] = Number(drinkVariantPreferences[key][value] || 0) + 1;
+  localStorage.setItem(DRINK_VARIANT_PREFERENCES_STORAGE_KEY, JSON.stringify(drinkVariantPreferences));
+}
+
 function getFoodPreferenceKey(name) {
   return normalizeFoodName(name || document.getElementById("foodName").value);
 }
@@ -2959,8 +3167,12 @@ function getBaseAmountCandidates() {
     return [];
   }
 
-  // 今回は「卵・乳製品」と牛乳だけを対象にする。
-  // 他カテゴリーの数量候補は、カテゴリーごとに確認しながら後から追加する。
+  // 卵・乳製品に加えて、飲み物は選択した容量を「本数」で管理する。
+  if (category === "飲み物" && document.getElementById("foodCapacity").value) {
+    return [1, 2, 3, 6, 24].map(function(value) {
+      return makeAmountCandidate(value, "本");
+    });
+  }
 
   if (
     name.includes("温泉卵") ||
@@ -3156,6 +3368,7 @@ function renderExpirySuggestions() {
 }
 
 function renderFoodInputSuggestions() {
+  renderDrinkVariantSuggestions();
   renderAmountSuggestions();
   renderExpirySuggestions();
 }
