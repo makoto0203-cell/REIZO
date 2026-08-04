@@ -877,6 +877,8 @@
               <option value="本">本</option>
               <option value="房">房</option>
               <option value="枚">枚</option>
+              <option value="切れ">切れ</option>
+              <option value="尾">尾</option>
               <option value="袋">袋</option>
               <option value="パック">パック</option>
               <option value="箱">箱</option>
@@ -3279,6 +3281,117 @@ function getBaseAmountCandidates() {
       makeAmountCandidate(120, "g"),
       makeAmountCandidate(180, "g")
     ];
+  }
+
+  // 肉：通常は重量管理。ステーキなど枚数で買う商品だけ専用候補を優先する。
+  if (category === "肉") {
+    if (
+      name.includes("ステーキ") ||
+      name.includes("とんかつ用") ||
+      name.includes("ポークソテー用") ||
+      name.includes("しょうが焼き用")
+    ) {
+      return [1, 2, 3, 4].map(function(value) {
+        return makeAmountCandidate(value, "枚");
+      });
+    }
+
+    return [100, 200, 300, 500].map(function(value) {
+      return makeAmountCandidate(value, "g");
+    });
+  }
+
+  // 魚：販売形態に合わせて、パック・切れ・尾・重量を使い分ける。
+  if (category === "魚") {
+    // 刺身・ネギトロなどはパック管理。
+    if (
+      name.includes("刺身") ||
+      name.includes("お刺身") ||
+      name.includes("ネギトロ") ||
+      name.includes("ねぎとろ") ||
+      name.includes("たたき") ||
+      type === "刺身"
+    ) {
+      return [1, 2, 3].map(function(value) {
+        return makeAmountCandidate(value, "パック");
+      });
+    }
+
+    // 切り身として売られることが多い魚。
+    if (
+      name.includes("切り身") ||
+      name.includes("鮭") ||
+      name.includes("しゃけ") ||
+      name.includes("サーモン") ||
+      name.includes("塩サバ") ||
+      name.includes("塩さば") ||
+      name.includes("ブリ") ||
+      name.includes("ぶり") ||
+      name.includes("タラ") ||
+      name.includes("たら") ||
+      name.includes("鱈") ||
+      type === "鮭" ||
+      type === "ブリ" ||
+      type === "タラ"
+    ) {
+      return [1, 2, 3, 4].map(function(value) {
+        return makeAmountCandidate(value, "切れ");
+      });
+    }
+
+    // 丸魚として買うことが多い魚。
+    if (
+      name.includes("アジ") ||
+      name.includes("あじ") ||
+      name.includes("鯵") ||
+      name.includes("イワシ") ||
+      name.includes("いわし") ||
+      name.includes("鰯") ||
+      name.includes("サンマ") ||
+      name.includes("さんま") ||
+      name.includes("秋刀魚") ||
+      name.includes("ホッケ") ||
+      name.includes("ほっけ") ||
+      type === "アジ" ||
+      type === "イワシ" ||
+      type === "サンマ"
+    ) {
+      return [1, 2, 3, 4].map(function(value) {
+        return makeAmountCandidate(value, "尾");
+      });
+    }
+
+    // エビ・イカ・タコ・貝類などは重量またはパックで管理。
+    if (
+      type === "エビ" ||
+      type === "カニ" ||
+      type === "イカ" ||
+      type === "タコ" ||
+      type === "貝類" ||
+      name.includes("エビ") ||
+      name.includes("えび") ||
+      name.includes("海老") ||
+      name.includes("イカ") ||
+      name.includes("いか") ||
+      name.includes("タコ") ||
+      name.includes("たこ") ||
+      name.includes("ホタテ") ||
+      name.includes("あさり") ||
+      name.includes("しじみ") ||
+      name.includes("牡蠣")
+    ) {
+      return [
+        makeAmountCandidate(1, "パック"),
+        makeAmountCandidate(100, "g"),
+        makeAmountCandidate(200, "g"),
+        makeAmountCandidate(300, "g")
+      ];
+    }
+
+    // 専用判定に当てはまらない魚は重量管理を基本とする。
+    return [100, 200, 300, 500].map(function(value) {
+      return makeAmountCandidate(value, "g");
+    });
   }
 
   return [];
