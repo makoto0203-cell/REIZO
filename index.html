@@ -876,6 +876,8 @@
               <option value="個">個</option>
               <option value="本">本</option>
               <option value="房">房</option>
+              <option value="束">束</option>
+              <option value="玉">玉</option>
               <option value="枚">枚</option>
               <option value="切れ">切れ</option>
               <option value="尾">尾</option>
@@ -3281,6 +3283,170 @@ function getBaseAmountCandidates() {
       makeAmountCandidate(120, "g"),
       makeAmountCandidate(180, "g")
     ];
+  }
+
+  // 野菜：実際のスーパーでよく見る販売形態を優先する。
+  if (category === "野菜") {
+    // バラ売りと袋売りの両方をよく見かける4品。
+    if (name.includes("玉ねぎ") || name.includes("玉葱")) {
+      return [
+        makeAmountCandidate(1, "個"),
+        makeAmountCandidate(2, "個"),
+        makeAmountCandidate(3, "個"),
+        makeAmountCandidate(5, "個"),
+        makeAmountCandidate(1, "袋")
+      ];
+    }
+
+    if (name.includes("にんじん") || name.includes("人参")) {
+      return [
+        makeAmountCandidate(1, "本"),
+        makeAmountCandidate(2, "本"),
+        makeAmountCandidate(3, "本"),
+        makeAmountCandidate(1, "袋")
+      ];
+    }
+
+    if (name.includes("ピーマン")) {
+      return [
+        makeAmountCandidate(1, "個"),
+        makeAmountCandidate(3, "個"),
+        makeAmountCandidate(5, "個"),
+        makeAmountCandidate(1, "袋")
+      ];
+    }
+
+    if (name.includes("パプリカ")) {
+      return [
+        makeAmountCandidate(1, "個"),
+        makeAmountCandidate(2, "個"),
+        makeAmountCandidate(1, "袋")
+      ];
+    }
+
+    // きのこ類はパック販売を基本とする。
+    if (
+      type === "きのこ" ||
+      name.includes("しめじ") ||
+      name.includes("しいたけ") ||
+      name.includes("椎茸") ||
+      name.includes("えのき") ||
+      name.includes("まいたけ") ||
+      name.includes("舞茸") ||
+      name.includes("エリンギ") ||
+      name.includes("なめこ") ||
+      name.includes("マッシュルーム") ||
+      name.includes("きくらげ")
+    ) {
+      return [1, 2, 3].map(function(value) {
+        return makeAmountCandidate(value, "パック");
+      });
+    }
+
+    // 葉物・豆類・オクラなど、袋またはパックで売られることが多いもの。
+    if (
+      type === "葉物" ||
+      type === "豆類" ||
+      name.includes("もやし") ||
+      name.includes("オクラ") ||
+      name.includes("モロヘイヤ")
+    ) {
+      return [1, 2, 3].map(function(value) {
+        return makeAmountCandidate(value, "袋");
+      });
+    }
+
+    // 長ねぎ・アスパラ・とうもろこしなど、本数で管理しやすいもの。
+    if (
+      name.includes("長ねぎ") ||
+      name.includes("長ネギ") ||
+      name.includes("アスパラ") ||
+      name.includes("とうもろこし") ||
+      name.includes("トウモロコシ") ||
+      name.includes("ごぼう") ||
+      name.includes("ゴボウ") ||
+      name.includes("さつまいも") ||
+      name.includes("サツマイモ")
+    ) {
+      return [1, 2, 3, 5].map(function(value) {
+        return makeAmountCandidate(value, "本");
+      });
+    }
+
+    // 大葉や香味野菜は束・パックの両方を用意する。
+    if (
+      type === "香味野菜" ||
+      name.includes("大葉") ||
+      name.includes("しそ") ||
+      name.includes("シソ") ||
+      name.includes("パセリ") ||
+      name.includes("パクチー") ||
+      name.includes("みょうが")
+    ) {
+      return [
+        makeAmountCandidate(1, "束"),
+        makeAmountCandidate(2, "束"),
+        makeAmountCandidate(1, "パック"),
+        makeAmountCandidate(2, "パック")
+      ];
+    }
+
+    // その他の一般的な野菜は個数管理を基本とする。
+    return [1, 2, 3, 4, 5].map(function(value) {
+      return makeAmountCandidate(value, "個");
+    });
+  }
+
+  // 果物：個・本・房・パック・玉を商品ごとに使い分ける。
+  if (category === "果物") {
+    if (name.includes("バナナ") || type === "バナナ") {
+      return [
+        makeAmountCandidate(1, "本"),
+        makeAmountCandidate(2, "本"),
+        makeAmountCandidate(3, "本"),
+        makeAmountCandidate(1, "房"),
+        makeAmountCandidate(2, "房")
+      ];
+    }
+
+    if (name.includes("ぶどう") || name.includes("ブドウ") || name.includes("葡萄") || type === "ぶどう") {
+      return [1, 2, 3].map(function(value) {
+        return makeAmountCandidate(value, "房");
+      });
+    }
+
+    if (
+      name.includes("いちご") || name.includes("イチゴ") || name.includes("苺") ||
+      name.includes("ブルーベリー") || name.includes("ラズベリー") ||
+      name.includes("ブラックベリー") || name.includes("さくらんぼ") ||
+      name.includes("チェリー") || name.includes("びわ") || name.includes("枇杷") ||
+      name.includes("いちじく") || name.includes("無花果") ||
+      name.includes("すもも") || name.includes("プラム") || name.includes("プルーン") ||
+      type === "いちご" || type === "さくらんぼ" || type === "ブルーベリー"
+    ) {
+      return [1, 2, 3].map(function(value) {
+        return makeAmountCandidate(value, "パック");
+      });
+    }
+
+    if (name.includes("スイカ") || name.includes("すいか") || type === "スイカ") {
+      return [
+        makeAmountCandidate(1, "玉"),
+        makeAmountCandidate(0.5, "玉"),
+        makeAmountCandidate(0.25, "玉")
+      ];
+    }
+
+    if (name.includes("栗") || name.includes("くり") || type === "栗") {
+      return [1, 2, 3].map(function(value) {
+        return makeAmountCandidate(value, "袋");
+      });
+    }
+
+    // りんご、梨、桃、柑橘、メロンなどは個数管理。
+    return [1, 2, 3, 4, 5].map(function(value) {
+      return makeAmountCandidate(value, "個");
+    });
   }
 
   // 肉：通常は重量管理。ステーキなど枚数で買う商品だけ専用候補を優先する。
