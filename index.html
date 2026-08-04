@@ -1,0 +1,2845 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta
+   name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  >
+  <meta name="theme-color" content="#edf7f5">
+  <title>REIZO｜冷蔵庫管理</title>
+
+  <style>
+    :root {
+      --main: #19796b;
+      --main-dark: #105c52;
+      --main-light: #dff3ef;
+      --background: #f4f8f7;
+      --card: #ffffff;
+      --text: #1f2927;
+      --subtext: #697471;
+      --border: #d9e2df;
+      --danger: #d64545;
+      --warning: #e89024;
+      --yellow: #d6ac18;
+      --safe: #33985c;
+      --shadow: 0 7px 24px rgba(24, 67, 59, 0.09);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding:
+        calc(14px + env(safe-area-inset-top))
+        14px
+        calc(36px + env(safe-area-inset-bottom));
+      color: var(--text);
+      background:
+        radial-gradient(circle at top, #edf9f6 0, var(--background) 360px);
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        "Helvetica Neue",
+        Arial,
+        sans-serif;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      touch-action: manipulation;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 560px;
+      margin: 0 auto;
+    }
+
+    .screen {
+      display: none;
+      animation: fadeIn 0.18s ease;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(4px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .hero {
+      padding: 18px 8px 16px;
+      text-align: center;
+    }
+
+    .logo {
+      margin: 0;
+      color: var(--main-dark);
+      font-size: 38px;
+      font-weight: 900;
+      letter-spacing: 4px;
+    }
+
+    .subtitle {
+      margin: 6px 0 0;
+      color: var(--subtext);
+      font-size: 14px;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 9px;
+      margin-bottom: 14px;
+    }
+
+    .summary-card {
+      padding: 14px 6px;
+      border: 1px solid rgba(25, 121, 107, 0.08);
+      border-radius: 17px;
+      background: var(--card);
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+
+    .summary-number {
+      display: block;
+      color: var(--main-dark);
+      font-size: 25px;
+      font-weight: 900;
+    }
+
+    .summary-label {
+      display: block;
+      margin-top: 3px;
+      color: var(--subtext);
+      font-size: 12px;
+    }
+
+    .card {
+      margin-bottom: 14px;
+      padding: 17px;
+      border: 1px solid rgba(25, 121, 107, 0.07);
+      border-radius: 19px;
+      background: var(--card);
+      box-shadow: var(--shadow);
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 0 0 13px;
+      font-size: 20px;
+    }
+
+    .section-note {
+      color: var(--subtext);
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 11px;
+      margin-bottom: 14px;
+    }
+
+    .menu-button {
+      min-height: 108px;
+      padding: 16px 11px;
+      border: 1px solid rgba(25, 121, 107, 0.08);
+      border-radius: 19px;
+      color: var(--text);
+      background: var(--card);
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      text-align: left;
+      transition:
+        transform 0.12s ease,
+        box-shadow 0.12s ease;
+    }
+
+    .menu-button:active {
+      transform: scale(0.97);
+      box-shadow: none;
+    }
+
+    .menu-icon {
+      display: block;
+      margin-bottom: 9px;
+      font-size: 27px;
+    }
+
+    .menu-title {
+      display: block;
+      font-size: 17px;
+      font-weight: 800;
+    }
+
+    .menu-description {
+      display: block;
+      margin-top: 4px;
+      color: var(--subtext);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .page-header {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 9px 0 15px;
+    }
+
+    .page-header h2 {
+      margin: 0;
+      font-size: 25px;
+    }
+
+    .back-button {
+      flex: 0 0 auto;
+      width: 44px;
+      height: 44px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      color: var(--main-dark);
+      background: white;
+      cursor: pointer;
+      font-size: 22px;
+      font-weight: bold;
+      box-shadow: 0 4px 13px rgba(0, 0, 0, 0.06);
+    }
+
+    .field {
+      margin-bottom: 14px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .required {
+      margin-left: 4px;
+      color: var(--danger);
+      font-size: 11px;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      padding: 13px 14px;
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      outline: none;
+      color: var(--text);
+      background: white;
+      font-size: 16px;
+      transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease;
+    }
+
+    textarea {
+      min-height: 85px;
+      resize: vertical;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--main);
+      box-shadow: 0 0 0 3px rgba(25, 121, 107, 0.12);
+    }
+
+    .two-columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 11px;
+    }
+
+    .button-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .primary-button,
+    .secondary-button,
+    .danger-button {
+      width: 100%;
+      min-height: 49px;
+      padding: 12px;
+      border-radius: 14px;
+      cursor: pointer;
+      font-weight: 800;
+    }
+
+    .primary-button {
+      border: none;
+      color: white;
+      background: var(--main);
+    }
+
+    .primary-button:active {
+      background: var(--main-dark);
+    }
+
+    .secondary-button {
+      border: 1px solid var(--border);
+      color: var(--text);
+      background: white;
+    }
+
+    .danger-button {
+      border: 1px solid #f1c4c4;
+      color: var(--danger);
+      background: #fff7f7;
+    }
+
+    .notice {
+      margin-bottom: 15px;
+      padding: 12px 13px;
+      border-radius: 13px;
+      color: #245e55;
+      background: var(--main-light);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .search-area {
+      display: grid;
+      grid-template-columns: 1fr 125px;
+      gap: 9px;
+      margin-bottom: 13px;
+    }
+
+    .category-tabs {
+      display: flex;
+      gap: 8px;
+      margin: 0 -2px 14px;
+      padding: 2px 2px 6px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .category-tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .chip {
+      flex: 0 0 auto;
+      padding: 9px 14px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--subtext);
+      background: white;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .chip.active {
+      border-color: var(--main);
+      color: white;
+      background: var(--main);
+    }
+
+    .food-item {
+      position: relative;
+      margin-bottom: 10px;
+      padding: 15px 14px 13px 17px;
+      border: 1px solid rgba(0, 0, 0, 0.04);
+      border-left: 6px solid var(--safe);
+      border-radius: 16px;
+      background: white;
+      box-shadow: 0 4px 14px rgba(25, 67, 59, 0.07);
+    }
+
+    .food-item.expired {
+      border-left-color: var(--danger);
+      background: #fff4f4;
+    }
+
+    .food-item.today {
+      border-left-color: var(--danger);
+      background: #fff4f4;
+    }
+
+    .food-item.soon {
+      border-left-color: var(--warning);
+      background: #fff9ef;
+    }
+
+    .food-item.week {
+      border-left-color: var(--yellow);
+      background: #fffcef;
+    }
+
+    .food-item.safe {
+      border-left-color: var(--safe);
+      background: #f8fff9;
+    }
+
+    .food-heading {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .food-name {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 900;
+      overflow-wrap: anywhere;
+    }
+
+    .status-badge {
+      flex: 0 0 auto;
+      padding: 5px 8px;
+      border-radius: 999px;
+      color: white;
+      background: var(--safe);
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .status-badge.expired {
+    background: #333333;
+}
+
+.status-badge.today {
+    background: var(--danger);
+}
+
+    .status-badge.soon {
+      background: var(--warning);
+    }
+
+    .status-badge.week {
+      background: var(--yellow);
+    }
+
+    .food-info {
+      margin-top: 7px;
+      color: var(--subtext);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .food-note {
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px dashed rgba(0, 0, 0, 0.1);
+      color: #4f5e5a;
+      font-size: 12px;
+    }
+
+    .item-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 7px;
+      margin-top: 10px;
+    }
+
+    .small-button {
+      padding: 7px 11px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: white;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .small-button.delete {
+      border-color: #f0caca;
+      color: var(--danger);
+      background: #fffafa;
+    }
+
+    .empty {
+      padding: 28px 15px;
+      border: 1px dashed var(--border);
+      border-radius: 16px;
+      color: var(--subtext);
+      background: rgba(255, 255, 255, 0.7);
+      text-align: center;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .category-block {
+      margin-bottom: 14px;
+    }
+
+    .category-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 0 0 9px;
+      padding: 0 3px;
+    }
+
+    .category-heading h3 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .category-count {
+      color: var(--subtext);
+      font-size: 12px;
+    }
+
+    .footer-note {
+      margin: 21px 0 5px;
+      color: var(--subtext);
+      text-align: center;
+      font-size: 11px;
+    }
+
+    .toast {
+      position: fixed;
+      z-index: 100;
+      right: 16px;
+      bottom: calc(18px + env(safe-area-inset-bottom));
+      left: 16px;
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 13px 16px;
+      border-radius: 14px;
+      color: white;
+      background: #263632;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.22);
+      opacity: 0;
+      pointer-events: none;
+      text-align: center;
+      transform: translateY(18px);
+      transition:
+        opacity 0.22s ease,
+        transform 0.22s ease;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 390px) {
+      .two-columns,
+      .button-row {
+        grid-template-columns: 1fr;
+      }
+
+      .search-area {
+        grid-template-columns: 1fr;
+      }
+
+      .menu-button {
+        min-height: 100px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app">
+
+    <!-- ホーム -->
+    <section id="homeScreen" class="screen active">
+      <header class="hero">
+        <h1 class="logo">REIZO</h1>
+        <p class="subtitle">冷蔵庫の食材を、期限が近い順に管理</p>
+      </header>
+
+      <div class="summary-grid">
+        <div class="summary-card">
+          <span id="totalCount" class="summary-number">0</span>
+          <span class="summary-label">登録食材</span>
+        </div>
+
+        <div class="summary-card">
+          <span id="urgentCount" class="summary-number">0</span>
+          <span class="summary-label">3日以内</span>
+        </div>
+
+        <div class="summary-card">
+          <span id="seasoningCount" class="summary-number">0</span>
+          <span class="summary-label">調味料</span>
+        </div>
+      </div>
+<div class="card" role="button" tabindex="0" onclick="showShoppingList()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();showShoppingList();}">
+    <h2 class="section-title" style="margin-bottom:0;">
+        🛒 次回購入 <span class="section-note">→</span>
+        <span class="section-note" id="shoppingCount">0件</span>
+    </h2>
+</div>
+      <div class="card">
+        <h2 class="section-title">
+          賞味期限が近い食材
+          <span class="section-note">期限順</span>
+        </h2>
+
+        <div id="urgentList"></div>
+      <div style="text-align: right; margin-top: 12px;">
+  <a href="#"
+   id="viewAllUrgent"
+   onclick="document.getElementById('stockSort').value='expiry'; showScreen('stockScreen'); renderStock(); return false;">
+  すべて見る →
+</a>
+</div>
+      </div>
+
+      <div class="menu-grid">
+        <button
+          class="menu-button"
+          type="button"
+          onclick="openAddFood()"
+        >
+          <span class="menu-icon">＋</span>
+          <span class="menu-title">食材を追加</span>
+          <span class="menu-description">
+            食品名・数量・期限を登録
+          </span>
+        </button>
+
+        <button
+          class="menu-button"
+          type="button"
+          onclick="document.getElementById('stockSort').value='expiry'; showScreen('stockScreen'); renderStock();"
+        >
+          <span class="menu-icon">🧊</span>
+          <span class="menu-title">冷蔵庫の中</span>
+          <span class="menu-description">
+            在庫を期限順に確認
+          </span>
+        </button>
+
+        <button
+          class="menu-button"
+          type="button"
+          onclick="showScreen('categoryScreen')"
+        >
+          <span class="menu-icon">📂</span>
+          <span class="menu-title">カテゴリー</span>
+          <span class="menu-description">
+            肉・魚・野菜などで表示
+          </span>
+        </button>
+
+        <button
+          class="menu-button"
+          type="button"
+          onclick="showScreen('seasoningScreen')"
+        >
+          <span class="menu-icon">🧂</span>
+          <span class="menu-title">調味料</span>
+          <span class="menu-description">
+            調味料を別枠で管理
+          </span>
+        </button>
+      </div>
+
+      <p class="footer-note">
+        データはこのブラウザ内に保存されます
+      </p>
+    </section>
+
+    <!-- 食材追加・編集 -->
+    <section id="addScreen" class="screen">
+      <header class="page-header">
+        <button
+          class="back-button"
+          type="button"
+          onclick="showScreen('homeScreen')"
+          aria-label="戻る"
+        >
+          ←
+        </button>
+
+        <h2 id="foodFormTitle">食材を追加</h2>
+      </header>
+
+      <div class="card">
+        <div class="notice">
+          食材名と期限は必須です。登録内容は、このブラウザ内に保存されます。
+        </div>
+
+        <input id="editingFoodId" type="hidden">
+
+        <div class="field">
+          <label for="foodName">
+            食材名<span class="required">必須</span>
+          </label>
+
+          <input
+            id="foodName"
+            type="text"
+            maxlength="40"
+            placeholder="例：豚バラ肉"
+            autocomplete="off"
+          oninput="autoSelectFoodCategory()"
+          >
+        </div>
+
+        <div class="two-columns">
+          <div class="field">
+            <label for="foodCategory">カテゴリー</label>
+
+            <select id="foodCategory" onchange="setDefaultUnitByCategory()">
+              <option value="肉">肉</option>
+              <option value="魚">魚</option>
+              <option value="野菜">野菜</option>
+              <option value="果物">果物</option>
+              <option value="卵・乳製品">卵・乳製品</option>
+              <option value="主食">主食</option>
+              <option value="飲み物">飲み物</option>
+              <option value="冷凍食品">冷凍食品</option>
+              <option value="加工食品">加工食品</option>
+              <option value="その他">その他</option>
+            </select>
+          </div>
+          <div class="field" id="foodTypeField" style="display:none;">
+  <label for="foodType">種類</label>
+
+  <select id="foodType">
+    <option value="">選択してください</option>
+    
+    
+    
+  </select>
+</div>
+
+          <div class="field">
+            <label for="foodLocation">保存場所</label>
+
+            <select id="foodLocation">
+              <option value="冷蔵">冷蔵</option>
+              <option value="冷凍">冷凍</option>
+              <option value="野菜室">野菜室</option>
+              <option value="常温">常温</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="two-columns">
+          <div class="field">
+            <label for="foodAmount">数量</label>
+
+            <input
+              id="foodAmount"
+              type="number"
+              min="0"
+              step="any"
+              inputmode="decimal"
+              placeholder="例：300"
+            >
+          </div>
+
+          <div class="field">
+            <label for="foodUnit">単位</label>
+
+            <select id="foodUnit">
+              <option value="g">g</option>
+              <option value="kg">kg</option>
+              <option value="個">個</option>
+              <option value="本">本</option>
+              <option value="枚">枚</option>
+              <option value="袋">袋</option>
+              <option value="パック">パック</option>
+              <option value="箱">箱</option>
+              <option value="ml">ml</option>
+              <option value="L">L</option>
+              <option value="食">食</option>
+              <option value="">単位なし</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="foodExpiry">
+            賞味期限・消費期限<span class="required">必須</span>
+          </label>
+
+          <input id="foodExpiry" type="date">
+        </div>
+
+        <div class="field">
+          <label for="foodPurchaseDate">購入日</label>
+          <input id="foodPurchaseDate" type="date">
+        </div>
+
+        <div class="field">
+          <label for="foodNote">メモ</label>
+
+          <textarea
+            id="foodNote"
+            maxlength="120"
+            placeholder="例：開封済み、半分使用など"
+          ></textarea>
+        </div>
+
+        <div class="button-row">
+          <button
+            class="secondary-button"
+            type="button"
+            onclick="cancelFoodForm()"
+          >
+            キャンセル
+          </button>
+
+          <button
+            id="foodSaveButton"
+            class="primary-button"
+            type="button"
+            onclick="saveFoodFromForm()"
+          >
+            登録する
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 冷蔵庫内 -->
+    <section id="stockScreen" class="screen">
+      <header class="page-header">
+        <button
+          class="back-button"
+          type="button"
+          onclick="showScreen('homeScreen')"
+          aria-label="戻る"
+        >
+          ←
+        </button>
+
+        <h2>冷蔵庫の中</h2>
+      </header>
+
+      <div class="search-area">
+        <input
+          id="stockSearch"
+          type="search"
+          placeholder="食材名を検索"
+          oninput="renderStock()"
+        >
+
+        <select id="stockSort" onchange="renderStock()">
+          <option value="expiry">期限が近い順</option>
+          <option value="newest">登録が新しい順</option>
+          <option value="name">名前順</option>
+        </select>
+      </div>
+
+      <div id="stockCategoryTabs" class="category-tabs"></div>
+      <div id="stockList"></div>
+    </section>
+
+    <!-- カテゴリー -->
+    <section id="categoryScreen" class="screen">
+      <header class="page-header">
+        <button
+          class="back-button"
+          type="button"
+          onclick="showScreen('homeScreen')"
+          aria-label="戻る"
+        >
+          ←
+        </button>
+
+        <h2>カテゴリー</h2>
+      </header>
+
+      <div id="categoryList"></div>
+    </section>
+
+    <!-- 調味料 -->
+    <section id="seasoningScreen" class="screen">
+      <header class="page-header">
+        <button
+          class="back-button"
+          type="button"
+          onclick="showScreen('homeScreen')"
+          aria-label="戻る"
+        >
+          ←
+        </button>
+
+        <h2>調味料</h2>
+      </header>
+
+      <button
+        class="primary-button"
+        type="button"
+        onclick="openAddSeasoning()"
+        style="margin-bottom: 14px;"
+      >
+        ＋ 調味料を追加
+      </button>
+
+      <div id="seasoningList"></div>
+    </section>
+<!-- 次回購入 -->
+    <section id="shoppingScreen" class="screen">
+      <header class="page-header">
+        <button
+          class="back-button"
+          type="button"
+          onclick="showScreen('homeScreen')"
+          aria-label="戻る"
+        >
+          ←
+        </button>
+
+        <h2>次回購入</h2>
+      </header>
+
+      <div id="shoppingFoodList"></div>
+    </section>
+    <!-- 調味料追加・編集 -->
+    <section id="seasoningFormScreen" class="screen">
+      <header class="page-header">
+        <button
+          class="back-button"
+          type="button"
+          onclick="showScreen('seasoningScreen')"
+          aria-label="戻る"
+        >
+          ←
+        </button>
+
+        <h2 id="seasoningFormTitle">調味料を追加</h2>
+      </header>
+
+      <div class="card">
+        <input id="editingSeasoningId" type="hidden">
+
+        <div class="field">
+          <label for="seasoningName">
+            調味料名<span class="required">必須</span>
+          </label>
+
+          <input
+            id="seasoningName"
+            type="text"
+            maxlength="40"
+            placeholder="例：しょうゆ"
+          oninput="autoSelectSeasoningType()"
+          >
+        </div>
+<div class="field">
+  <label for="seasoningType">種類</label>
+
+  <select id="seasoningType">
+    <option value="">選択してください</option>
+    <option value="基本調味料">基本調味料</option>
+    <option value="ソース">ソース</option>
+    <option value="油">油</option>
+    <option value="だし">だし</option>
+    <option value="香辛料">香辛料</option>
+    <option value="ドレッシング">ドレッシング</option>
+    <option value="その他">その他</option>
+  </select>
+</div>
+        <div class="two-columns">
+          <div class="field">
+            <label for="seasoningAmount">残量・数量</label>
+
+            <input
+              id="seasoningAmount"
+              type="text"
+              maxlength="30"
+              placeholder="例：半分、1本"
+            >
+          </div>
+
+          <div class="field">
+            <label for="seasoningLocation">保存場所</label>
+
+            <select id="seasoningLocation">
+              <option value="冷蔵">冷蔵</option>
+              <option value="常温">常温</option>
+              <option value="冷凍">冷凍</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="seasoningExpiry">期限</label>
+          <input id="seasoningExpiry" type="date">
+        </div>
+
+        <div class="field">
+          <label for="seasoningNote">メモ</label>
+
+          <textarea
+            id="seasoningNote"
+            maxlength="120"
+            placeholder="例：開封済み、買い足し予定など"
+          ></textarea>
+        </div>
+
+        <div class="button-row">
+          <button
+            class="secondary-button"
+            type="button"
+            onclick="showScreen('seasoningScreen')"
+          >
+            キャンセル
+          </button>
+
+          <button
+            id="seasoningSaveButton"
+            class="primary-button"
+            type="button"
+            onclick="saveSeasoningFromForm()"
+          >
+            登録する
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const FOOD_STORAGE_KEY = "reizo_foods_v1";
+    const SEASONING_STORAGE_KEY = "reizo_seasonings_v1";
+
+    let foods = readStorage(FOOD_STORAGE_KEY);
+    let seasonings = readStorage(SEASONING_STORAGE_KEY);
+    let selectedStockCategory = "すべて";
+    let toastTimer = null;
+
+    function readStorage(key) {
+      try {
+        const data = JSON.parse(localStorage.getItem(key));
+        return Array.isArray(data) ? data : [];
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function writeStorage(key, value) {
+      localStorage.setItem(key, JSON.stringify(value));
+    }
+
+    function saveFoods() {
+      writeStorage(FOOD_STORAGE_KEY, foods);
+    }
+
+    function saveSeasonings() {
+      writeStorage(SEASONING_STORAGE_KEY, seasonings);
+    }
+
+    function showScreen(screenId) {
+      document.querySelectorAll(".screen").forEach(function(screen) {
+        screen.classList.remove("active");
+      });
+
+      const target = document.getElementById(screenId);
+
+      if (!target) {
+        return;
+      }
+
+      target.classList.add("active");
+
+      if (screenId === "homeScreen") {
+        renderHome();
+      }
+
+      if (screenId === "stockScreen") {
+        renderStockCategoryTabs();
+        renderStock();
+      }
+
+      if (screenId === "categoryScreen") {
+        renderCategories();
+      }
+
+      if (screenId === "seasoningScreen") {
+        renderSeasonings();
+      }
+
+      if (screenId === "shoppingScreen") {
+        renderShoppingList();
+      }
+
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+      });
+    }
+
+    function isFoodBuyNext(food) {
+      return Boolean(food && (food.shopping || food.buyNext));
+    }
+
+    function renderHome() {
+      document.getElementById("totalCount").textContent = foods.length;
+      document.getElementById("seasoningCount").textContent =
+        seasonings.length;
+
+      const shoppingFoodCount = foods.filter(function(food) {
+        return isFoodBuyNext(food);
+      }).length;
+
+      const shoppingSeasoningCount = seasonings.filter(function(item) {
+        return item.buyNext;
+      }).length;
+
+      document.getElementById("shoppingCount").textContent =
+        shoppingFoodCount + shoppingSeasoningCount + "件";
+      const urgentFoods = sortFoodsByExpiry(foods).filter(function(food) {
+        return getDaysLeft(food.expiry) <= 3;
+      });
+
+      document.getElementById("urgentCount").textContent =
+        urgentFoods.length;
+
+      const urgentList = document.getElementById("urgentList");
+
+      if (foods.length === 0) {
+        urgentList.innerHTML = createEmptyHtml(
+          "まだ食材が登録されていません。<br>「食材を追加」から登録できます。"
+        );
+        return;
+      }
+
+      const displayFoods = sortFoodsByExpiry(foods).filter(function(food) {
+        return getDaysLeft(food.expiry) <= 7;
+      });
+
+      if (displayFoods.length === 0) {
+        urgentList.innerHTML = createEmptyHtml(
+          "7日以内に期限が来る食材はありません。"
+        );
+        return;
+      }
+
+      const shoppingSeasonings = seasonings.filter(function(item) {
+    return item.buyNext;
+});
+
+urgentList.innerHTML =
+
+    displayFoods
+        .slice(0, 3)
+        .map(function(food) {
+            return createFoodHtml(food, false);
+        })
+        .join("");
+    }
+
+    function openAddFood() {
+      resetFoodForm();
+      
+  
+  
+
+    document.getElementById("foodPurchaseDate").value =
+        getTodayString();
+
+      document.getElementById("foodPurchaseDate").value =
+        getTodayString();
+
+      document.getElementById("foodFormTitle").textContent =
+        "食材を追加";
+
+      document.getElementById("foodSaveButton").textContent =
+        "登録する";
+
+      showScreen("addScreen");
+    }
+
+    function editFood(id) {
+      const food = foods.find(function(item) {
+        return item.id === id;
+      });
+
+      if (!food) {
+        return;
+      }
+
+      document.getElementById("editingFoodId").value = food.id;
+      document.getElementById("foodName").value = food.name || "";
+      document.getElementById("foodCategory").value =
+        food.category || "その他";
+
+      document.getElementById("foodLocation").value =
+        food.location || "冷蔵";
+
+      document.getElementById("foodAmount").value =
+        food.amount ?? "";
+
+      document.getElementById("foodUnit").value =
+        food.unit ?? "";
+
+      document.getElementById("foodExpiry").value =
+        food.expiry || "";
+
+      document.getElementById("foodPurchaseDate").value =
+        food.purchaseDate || "";
+
+      document.getElementById("foodNote").value =
+        food.note || "";
+
+      document.getElementById("foodFormTitle").textContent =
+        "食材を編集";
+
+      document.getElementById("foodSaveButton").textContent =
+        "変更を保存";
+
+      showScreen("addScreen");
+    }
+
+    function saveFoodFromForm() {
+      const editingId =
+        document.getElementById("editingFoodId").value;
+
+      const name =
+        document.getElementById("foodName").value.trim();
+
+      const category =
+        document.getElementById("foodCategory").value;
+
+      const location =
+        document.getElementById("foodLocation").value;
+
+      const amount =
+        document.getElementById("foodAmount").value;
+
+      const unit =
+        document.getElementById("foodUnit").value;
+
+      const expiry =
+        document.getElementById("foodExpiry").value;
+
+      const purchaseDate =
+        document.getElementById("foodPurchaseDate").value;
+
+      const note =
+        document.getElementById("foodNote").value.trim();
+
+      if (!name) {
+        alert("食材名を入力してください。");
+        document.getElementById("foodName").focus();
+        return;
+      }
+
+      if (!expiry) {
+        alert("賞味期限・消費期限を入力してください。");
+        document.getElementById("foodExpiry").focus();
+        return;
+      }
+
+      if (editingId) {
+        const foodIndex = foods.findIndex(function(food) {
+          return String(food.id) === String(editingId);
+        });
+
+        if (foodIndex !== -1) {
+          foods[foodIndex] = {
+            ...foods[foodIndex],
+            name: name,
+            category: category,
+            location: location,
+            amount: amount,
+            unit: unit,
+            expiry: expiry,
+            purchaseDate: purchaseDate,
+            note: note,
+            updatedAt: new Date().toISOString()
+          };
+        }
+
+        showToast("食材を変更しました");
+      } else {
+        foods.push({
+          id: Date.now(),
+          name: name,
+          category: category,
+          location: location,
+          amount: amount,
+          unit: unit,
+          expiry: expiry,
+          purchaseDate: purchaseDate,
+          note: note,
+          shopping: false,
+          buyNext: false,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        });
+
+        showToast("食材を登録しました");
+      }
+
+      saveFoods();
+      resetFoodForm();
+      showScreen("homeScreen");
+    }
+
+    function cancelFoodForm() {
+      resetFoodForm();
+      showScreen("homeScreen");
+    }
+
+    function resetFoodForm() {
+      document.getElementById("editingFoodId").value = "";
+      document.getElementById("foodName").value = "";
+      document.getElementById("foodCategory").value = "肉";
+      document.getElementById("foodLocation").value = "冷蔵";
+      document.getElementById("foodAmount").value = "";
+      document.getElementById("foodUnit").value = "g";
+      document.getElementById("foodExpiry").value = "";
+      document.getElementById("foodPurchaseDate").value = "";
+      document.getElementById("foodNote").value = "";
+    }
+
+    function deleteFood(id) {
+      const food = foods.find(function(item) {
+        return item.id === id;
+      });
+
+      if (!food) {
+        return;
+      }
+
+      const confirmed = confirm(
+        "「" + food.name + "」を削除しますか？"
+      );
+
+      if (!confirmed) {
+        return;
+      }
+
+      foods = foods.filter(function(item) {
+        return item.id !== id;
+      });
+
+      saveFoods();
+      renderHome();
+      renderStock();
+      renderCategories();
+      showToast("食材を削除しました");
+    }
+function toggleShoppingItem(id) {
+    const food = foods.find(function(item) {
+        return item.id === id;
+    });
+
+    if (!food) {
+        return;
+    }
+
+    const nextState = !isFoodBuyNext(food);
+    food.shopping = nextState;
+    food.buyNext = nextState;
+
+    saveFoods();
+    renderHome();
+    renderStock();
+    renderCategories();
+    renderShoppingList();
+
+    showToast(
+        nextState
+            ? "次回購入に追加しました"
+            : "次回購入から外しました"
+    );
+}
+    function renderStockCategoryTabs() {
+      const container =
+        document.getElementById("stockCategoryTabs");
+
+      const categories = [
+        "すべて",
+        ...new Set(
+          foods.map(function(food) {
+            return food.category || "その他";
+          })
+        )
+      ];
+
+      if (!categories.includes(selectedStockCategory)) {
+        selectedStockCategory = "すべて";
+      }
+
+      container.innerHTML = categories
+        .map(function(category) {
+          const activeClass =
+            category === selectedStockCategory ? " active" : "";
+
+          return (
+            '<button class="chip' +
+            activeClass +
+            '" type="button" onclick="setStockCategory(\'' +
+            escapeForAttribute(category) +
+            "')\">" +
+            escapeHtml(category) +
+            "</button>"
+          );
+        })
+        .join("");
+    }
+
+    function setStockCategory(category) {
+      selectedStockCategory = category;
+      renderStockCategoryTabs();
+      renderStock();
+    }
+
+    function renderStock() {
+      const stockList = document.getElementById("stockList");
+      const searchInput = document.getElementById("stockSearch");
+      const sortSelect = document.getElementById("stockSort");
+
+      const searchText = searchInput
+        ? searchInput.value.trim().toLowerCase()
+        : "";
+
+      const sortType = sortSelect
+        ? sortSelect.value
+        : "expiry";
+
+      let filteredFoods = foods.filter(function(food) {
+        const categoryMatches =
+          selectedStockCategory === "すべて" ||
+          food.category === selectedStockCategory;
+
+        const nameMatches =
+          !searchText ||
+          String(food.name).toLowerCase().includes(searchText);
+
+        return categoryMatches && nameMatches;
+      });
+
+      if (sortType === "expiry") {
+        filteredFoods = sortFoodsByExpiry(filteredFoods);
+      }
+
+      if (sortType === "newest") {
+        filteredFoods.sort(function(a, b) {
+          return Number(b.id) - Number(a.id);
+        });
+      }
+
+      if (sortType === "name") {
+        filteredFoods.sort(function(a, b) {
+          return String(a.name).localeCompare(
+            String(b.name),
+            "ja"
+          );
+        });
+      }
+
+      if (filteredFoods.length === 0) {
+        stockList.innerHTML = createEmptyHtml(
+          foods.length === 0
+            ? "まだ食材が登録されていません。"
+            : "条件に一致する食材がありません。"
+        );
+
+        return;
+      }
+
+      stockList.innerHTML = filteredFoods
+        .map(function(food) {
+          return createFoodHtml(food, true);
+        })
+        .join("");
+    }
+
+    function renderCategories() {
+      const categoryList =
+        document.getElementById("categoryList");
+
+      if (foods.length === 0) {
+        categoryList.innerHTML = createEmptyHtml(
+          "食材を登録すると、カテゴリー別に表示されます。"
+        );
+        return;
+      }
+
+      const categoryMap = {};
+
+      sortFoodsByExpiry(foods).forEach(function(food) {
+        const category = food.category || "その他";
+
+        if (!categoryMap[category]) {
+          categoryMap[category] = [];
+        }
+
+        categoryMap[category].push(food);
+      });
+
+      categoryList.innerHTML = Object.keys(categoryMap)
+        .sort(function(a, b) {
+          return a.localeCompare(b, "ja");
+        })
+        .map(function(category) {
+          const categoryFoods = categoryMap[category];
+
+          return (
+            '<section class="category-block">' +
+            '<div class="category-heading">' +
+            "<h3>" +
+            escapeHtml(category) +
+            "</h3>" +
+            '<span class="category-count">' +
+            categoryFoods.length +
+            "件</span>" +
+            "</div>" +
+            categoryFoods
+              .map(function(food) {
+                return createFoodHtml(food, true);
+              })
+              .join("") +
+            "</section>"
+          );
+        })
+        .join("");
+    }
+
+    function createFoodHtml(food, showActions, showCartOnly) {
+      const daysLeft = getDaysLeft(food.expiry);
+      const status = getFoodStatus(daysLeft);
+      const amountText = createAmountText(food);
+      const purchaseText = food.purchaseDate
+        ? "購入日：" + escapeHtml(food.purchaseDate)
+        : "";
+
+      const noteHtml = food.note
+        ? '<div class="food-note">メモ：' +
+          escapeHtml(food.note) +
+          "</div>"
+        : "";
+
+      const actionHtml = showActions
+  ? '<div class="item-actions">' +
+    '<button class="small-button" type="button" onclick="editFood(' +
+    food.id +
+    ')">編集</button>' +
+    '<button class="small-button" type="button" onclick="toggleShoppingItem(' +
+food.id +
+')">' + (isFoodBuyNext(food) ? '✅🛒' : '🛒') + '</button>' +
+    '<button class="small-button delete" type="button" onclick="deleteFood(' +
+    food.id +
+    ')">削除</button>' +
+    "</div>"
+  : showCartOnly
+  ? '<div class="item-actions">' +
+    '<button class="small-button" type="button" onclick="toggleShoppingItem(' +
+    food.id +
+    ')">' + (isFoodBuyNext(food) ? '✅🛒' : '🛒') + '</button>' +
+    "</div>"
+  : "";
+
+      return (
+        '<article class="food-item ' +
+        status.className +
+        '">' +
+        '<div class="food-heading">' +
+        '<h3 class="food-name">' +
+        escapeHtml(food.name) +
+        "</h3>" +
+        '<span class="status-badge ' +
+        status.className +
+        '">' +
+        escapeHtml(status.text) +
+        "</span>" +
+        "</div>" +
+        '<div class="food-info">' +
+        escapeHtml(food.category || "その他") +
+        " ／ " +
+        escapeHtml(food.location || "保存場所未設定") +
+        "<br>" +
+        "数量：" +
+        escapeHtml(amountText) +
+        "<br>" +
+        "期限：" +
+        escapeHtml(food.expiry) +
+        (purchaseText ? "<br>" + purchaseText : "") +
+        "</div>" +
+        noteHtml +
+        actionHtml +
+        "</article>"
+      );
+    }
+
+    function createAmountText(food) {
+      const hasAmount =
+        food.amount !== undefined &&
+        food.amount !== null &&
+        String(food.amount).trim() !== "";
+
+      if (!hasAmount) {
+        return "未入力";
+      }
+
+      return String(food.amount) + String(food.unit || "");
+    }
+
+    function sortFoodsByExpiry(list) {
+      return list.slice().sort(function(a, b) {
+        const dateA = new Date(a.expiry + "T00:00:00");
+        const dateB = new Date(b.expiry + "T00:00:00");
+
+        return dateA - dateB;
+      });
+    }
+
+    function getDaysLeft(expiry) {
+      if (!expiry) {
+        return 999999;
+      }
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const expiryDate = new Date(expiry + "T00:00:00");
+
+      return Math.ceil(
+        (expiryDate - today) / 86400000
+      );
+    }
+
+    function getFoodStatus(daysLeft) {
+
+    // 期限切れ
+    if (daysLeft < 0) {
+        return {
+            className: "expired",
+            text: Math.abs(daysLeft) + "日経過"
+        };
+    }
+
+    // 今日まで
+    if (daysLeft === 0) {
+        return {
+            className: "today",
+            text: "今日まで"
+        };
+    }
+
+    // あと1日
+    if (daysLeft === 1) {
+        return {
+            className: "today",
+            text: "あと1日"
+        };
+    }
+
+    // あと2〜6日
+    if (daysLeft <= 6) {
+        return {
+            className: "soon",
+            text: "あと" + daysLeft + "日"
+        };
+    }
+
+    // あと7〜19日
+    if (daysLeft <= 19) {
+        return {
+            className: "week",
+            text: "あと" + daysLeft + "日"
+        };
+    }
+
+    // あと20日以上
+    return {
+        className: "safe",
+        text: "あと" + daysLeft + "日"
+    };
+}
+
+    function openAddSeasoning() {
+      resetSeasoningForm();
+
+      document.getElementById("seasoningFormTitle").textContent =
+        "調味料を追加";
+
+      document.getElementById("seasoningSaveButton").textContent =
+        "登録する";
+
+      showScreen("seasoningFormScreen");
+    }
+
+    function editSeasoning(id) {
+      const seasoning = seasonings.find(function(item) {
+        return item.id === id;
+      });
+
+      if (!seasoning) {
+        return;
+      }
+
+      document.getElementById("editingSeasoningId").value =
+        seasoning.id;
+
+      document.getElementById("seasoningName").value =
+        seasoning.name || "";
+
+      document.getElementById("seasoningAmount").value =
+        seasoning.amount || "";
+
+      document.getElementById("seasoningLocation").value =
+        seasoning.location || "常温";
+
+      document.getElementById("seasoningExpiry").value =
+        seasoning.expiry || "";
+
+      document.getElementById("seasoningNote").value =
+        seasoning.note || "";
+
+      document.getElementById("seasoningFormTitle").textContent =
+        "調味料を編集";
+
+      document.getElementById("seasoningSaveButton").textContent =
+        "変更を保存";
+
+      showScreen("seasoningFormScreen");
+    }
+const seasoningDatabase = {
+  // 基本調味料
+  "しょうゆ": "基本調味料",
+  "醤油": "基本調味料",
+  "塩": "基本調味料",
+  "砂糖": "基本調味料",
+  "こしょう": "基本調味料",
+  "胡椒": "基本調味料",
+  "ブラックペッパー": "基本調味料",
+  "白こしょう": "基本調味料",
+
+  // ソース
+  "ケチャップ": "ソース",
+  "マヨネーズ": "ソース",
+  "中濃ソース": "ソース",
+  "ウスターソース": "ソース",
+  "とんかつソース": "ソース",
+  "オイスターソース": "ソース",
+  "焼肉のたれ": "ソース",
+  "ポン酢": "ソース",
+
+  // 油
+  "サラダ油": "油",
+  "オリーブオイル": "油",
+  "ごま油": "油",
+  "米油": "油",
+
+  // だし
+  "コンソメ": "だし",
+  "鶏ガラスープ": "だし",
+  "和風だし": "だし",
+  "白だし": "だし",
+  "めんつゆ": "だし",
+
+  // 香辛料
+  "七味": "香辛料",
+  "一味": "香辛料",
+  "カレー粉": "香辛料",
+  "にんにく": "香辛料",
+  "しょうが": "香辛料",
+
+  // ドレッシング
+  "シーザードレッシング": "ドレッシング",
+  "ごまドレッシング": "ドレッシング",
+  "和風ドレッシング": "ドレッシング",
+  "青じそドレッシング": "ドレッシング"
+};
+function autoSelectSeasoningType() {
+  
+  const seasoningName = document
+    .getElementById("seasoningName")
+    .value
+    .replace(/\s+/g, "")
+    .toLowerCase();
+
+  const seasoningType =
+    document.getElementById("seasoningType");
+
+  if (!seasoningName) {
+    seasoningType.value = "";
+    return;
+  }
+
+  const matchedSeasoning = Object.keys(seasoningDatabase)
+    .sort(function(a, b) {
+      return b.length - a.length;
+    })
+    .find(function(name) {
+      return seasoningName.includes(name.toLowerCase());
+    });
+
+  seasoningType.value = matchedSeasoning
+    ? seasoningDatabase[matchedSeasoning]
+    : "";
+}
+    function saveSeasoningFromForm() {
+      const editingId =
+        document.getElementById("editingSeasoningId").value;
+
+      const name =
+        document.getElementById("seasoningName").value.trim();
+
+      const amount =
+        document.getElementById("seasoningAmount").value.trim();
+
+      const location =
+        document.getElementById("seasoningLocation").value;
+
+      const expiry =
+        document.getElementById("seasoningExpiry").value;
+
+      const note =
+        document.getElementById("seasoningNote").value.trim();
+
+      if (!name) {
+        alert("調味料名を入力してください。");
+        document.getElementById("seasoningName").focus();
+        return;
+      }
+
+      if (editingId) {
+        const index = seasonings.findIndex(function(item) {
+          return String(item.id) === String(editingId);
+        });
+
+        if (index !== -1) {
+          seasonings[index] = {
+            ...seasonings[index],
+            name: name,
+            amount: amount,
+            location: location,
+            expiry: expiry,
+            note: note,
+            updatedAt: new Date().toISOString()
+          };
+        }
+
+        showToast("調味料を変更しました");
+      } else {
+        seasonings.push({
+          id: Date.now(),
+          name: name,
+          amount: amount,
+          location: location,
+          expiry: expiry,
+          note: note,
+          buyNext: false,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        });
+
+        showToast("調味料を登録しました");
+      }
+
+      saveSeasonings();
+      resetSeasoningForm();
+      showScreen("seasoningScreen");
+    }
+
+    function resetSeasoningForm() {
+      document.getElementById("editingSeasoningId").value = "";
+      document.getElementById("seasoningName").value = "";
+      document.getElementById("seasoningAmount").value = "";
+      document.getElementById("seasoningLocation").value = "常温";
+      document.getElementById("seasoningExpiry").value = "";
+      document.getElementById("seasoningNote").value = "";
+    }
+
+    function deleteSeasoning(id) {
+      const seasoning = seasonings.find(function(item) {
+        return item.id === id;
+      });
+
+      if (!seasoning) {
+        return;
+      }
+
+      const confirmed = confirm(
+        "「" + seasoning.name + "」を削除しますか？"
+      );
+
+      if (!confirmed) {
+        return;
+      }
+
+      seasonings = seasonings.filter(function(item) {
+        return item.id !== id;
+      });
+
+      saveSeasonings();
+      renderSeasonings();
+      renderHome();
+      showToast("調味料を削除しました");
+    }
+function toggleBuyNext(id) {
+  const seasoning = seasonings.find(function(item) {
+    return item.id === id;
+  });
+
+  if (!seasoning) {
+    return;
+  }
+
+  seasoning.buyNext = !seasoning.buyNext;
+
+  saveSeasonings();
+  renderSeasonings();
+  renderHome();
+  renderShoppingList();
+
+  showToast(
+    seasoning.buyNext
+      ? "次回購入に追加しました"
+      : "次回購入から外しました"
+  );
+}
+    function renderSeasonings() {
+      const seasoningList =
+        document.getElementById("seasoningList");
+
+      if (seasonings.length === 0) {
+        seasoningList.innerHTML = createEmptyHtml(
+          "まだ調味料が登録されていません。"
+        );
+        return;
+      }
+
+      const sorted = seasonings.slice().sort(function(a, b) {
+        if (!a.expiry && !b.expiry) {
+          return String(a.name).localeCompare(
+            String(b.name),
+            "ja"
+          );
+        }
+
+        if (!a.expiry) {
+          return 1;
+        }
+
+        if (!b.expiry) {
+          return -1;
+        }
+
+        return (
+          new Date(a.expiry + "T00:00:00") -
+          new Date(b.expiry + "T00:00:00")
+        );
+      });
+
+      seasoningList.innerHTML = sorted
+        .map(function(seasoning) {
+          let status = {
+            className: "safe",
+            text: "期限未入力"
+          };
+
+          if (seasoning.expiry) {
+            status = getFoodStatus(
+              getDaysLeft(seasoning.expiry)
+            );
+          }
+
+          const expiryText = seasoning.expiry
+            ? seasoning.expiry
+            : "未入力";
+
+          const amountText = seasoning.amount || "未入力";
+
+          const noteHtml = seasoning.note
+            ? '<div class="food-note">メモ：' +
+              escapeHtml(seasoning.note) +
+              "</div>"
+            : "";
+
+          return (
+            '<article class="food-item ' +
+            status.className +
+            '">' +
+            '<div class="food-heading">' +
+            '<h3 class="food-name">' +
+            escapeHtml(seasoning.name) +
+            "</h3>" +
+            '<span class="status-badge ' +
+            status.className +
+            '">' +
+            escapeHtml(status.text) +
+            "</span>" +
+            "</div>" +
+            '<div class="food-info">' +
+            "保存：" +
+            escapeHtml(seasoning.location || "未設定") +
+            "<br>" +
+            "残量・数量：" +
+            escapeHtml(amountText) +
+            "<br>" +
+            "期限：" +
+            escapeHtml(expiryText) +
+            "</div>" +
+            noteHtml +
+            '<div class="item-actions">' +
+            '<button class="small-button" type="button" onclick="editSeasoning(' +
+            seasoning.id +
+            ')">編集</button>' +
+            '<button class="small-button" type="button" onclick="toggleBuyNext(' + seasoning.id + ')">' + (seasoning.buyNext ? "✅🛒" : "🛒") + '</button>' +
+            
+            '<button class="small-button delete" type="button" onclick="deleteSeasoning(' +
+            seasoning.id +
+            ')">削除</button>' +
+            "</div>" +
+            "</article>"
+          );
+        })
+        .join("");
+    }
+
+    function createEmptyHtml(message) {
+      return '<div class="empty">' + message + "</div>";
+    }
+
+    function getTodayString() {
+      const date = new Date();
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+
+      return year + "-" + month + "-" + day;
+    }
+const vegetableDatabase = {
+  // 葉物
+  "キャベツ": "葉物",
+  "レタス": "葉物",
+  "サニーレタス": "葉物",
+  "サラダ菜": "葉物",
+  "白菜": "葉物",
+  "ほうれん草": "葉物",
+  "ほうれんそう": "葉物",
+  "小松菜": "葉物",
+  "水菜": "葉物",
+  "春菊": "葉物",
+  "チンゲンサイ": "葉物",
+  "青梗菜": "葉物",
+  "ニラ": "葉物",
+  "モロヘイヤ": "葉物",
+  "ルッコラ": "葉物",
+
+  // 根菜・いも類
+  "にんじん": "根菜",
+  "人参": "根菜",
+  "大根": "根菜",
+  "かぶ": "根菜",
+  "カブ": "根菜",
+  "ごぼう": "根菜",
+  "ゴボウ": "根菜",
+  "れんこん": "根菜",
+  "レンコン": "根菜",
+  "じゃがいも": "根菜",
+  "ジャガイモ": "根菜",
+  "じゃが芋": "根菜",
+  "さつまいも": "根菜",
+  "サツマイモ": "根菜",
+  "里芋": "根菜",
+  "さといも": "根菜",
+  "長芋": "根菜",
+  "山芋": "根菜",
+  "玉ねぎ": "根菜",
+  "玉葱": "根菜",
+  "にんにく": "根菜",
+  "ニンニク": "根菜",
+  "しょうが": "根菜",
+  "生姜": "根菜",
+
+  // 実野菜
+  "ミニトマト": "実野菜",
+  "トマト": "実野菜",
+  "きゅうり": "実野菜",
+  "キュウリ": "実野菜",
+  "なす": "実野菜",
+  "ナス": "実野菜",
+  "ピーマン": "実野菜",
+  "パプリカ": "実野菜",
+  "ししとう": "実野菜",
+  "オクラ": "実野菜",
+  "かぼちゃ": "実野菜",
+  "カボチャ": "実野菜",
+  "ズッキーニ": "実野菜",
+  "ゴーヤ": "実野菜",
+  "とうもろこし": "実野菜",
+  "トウモロコシ": "実野菜",
+
+  // 花野菜
+  "ブロッコリー": "花野菜",
+  "カリフラワー": "花野菜",
+  "菜の花": "花野菜",
+
+  // 茎野菜
+  "アスパラガス": "茎野菜",
+  "アスパラ": "茎野菜",
+  "セロリ": "茎野菜",
+  "たけのこ": "茎野菜",
+  "筍": "茎野菜",
+
+  // 香味野菜
+  "長ねぎ": "香味野菜",
+  "長ネギ": "香味野菜",
+  "青ねぎ": "香味野菜",
+  "青ネギ": "香味野菜",
+  "万能ねぎ": "香味野菜",
+  "万能ネギ": "香味野菜",
+  "ねぎ": "香味野菜",
+  "ネギ": "香味野菜",
+  "みょうが": "香味野菜",
+  "ミョウガ": "香味野菜",
+  "大葉": "香味野菜",
+  "しそ": "香味野菜",
+  "シソ": "香味野菜",
+  "パセリ": "香味野菜",
+  "パクチー": "香味野菜",
+
+  // 豆類
+  "枝豆": "豆類",
+  "さやいんげん": "豆類",
+  "いんげん": "豆類",
+  "スナップえんどう": "豆類",
+  "絹さや": "豆類",
+  "そら豆": "豆類",
+  "グリーンピース": "豆類",
+
+  // きのこ
+  "ぶなしめじ": "きのこ",
+  "しめじ": "きのこ",
+  "しいたけ": "きのこ",
+  "椎茸": "きのこ",
+  "えのきだけ": "きのこ",
+  "えのき": "きのこ",
+  "まいたけ": "きのこ",
+  "舞茸": "きのこ",
+  "エリンギ": "きのこ",
+  "なめこ": "きのこ",
+  "マッシュルーム": "きのこ",
+  "きくらげ": "きのこ",
+
+  // その他
+  "もやし": "その他"
+};
+const meatDatabase = {
+  // 鶏肉
+  "鶏むね": "鶏肉",
+  "鶏胸": "鶏肉",
+  "むね肉": "鶏肉",
+  "胸肉": "鶏肉",
+  "鶏もも": "鶏肉",
+  "もも肉": "鶏肉",
+  "鶏ささみ": "鶏肉",
+  "ささみ": "鶏肉",
+  "鶏手羽元": "鶏肉",
+  "手羽元": "鶏肉",
+  "鶏手羽先": "鶏肉",
+  "手羽先": "鶏肉",
+  "鶏ひき肉": "鶏肉",
+  "鶏ミンチ": "鶏肉",
+  "鶏肉": "鶏肉",
+"牛豚合い挽き": "牛豚合い挽き",
+"牛豚合い挽き肉": "牛豚合い挽き",
+"合い挽き": "牛豚合い挽き",
+"合い挽き肉": "牛豚合い挽き",
+"合いびき": "牛豚合い挽き",
+"合いびき肉": "牛豚合い挽き",
+"合挽き": "牛豚合い挽き",
+"合挽き肉": "牛豚合い挽き",
+  // 豚肉
+  "豚バラ": "豚肉",
+  "豚ばら": "豚肉",
+  "豚ロース": "豚肉",
+  "豚肩ロース": "豚肉",
+  "豚こま": "豚肉",
+  "豚小間": "豚肉",
+  "豚切り落とし": "豚肉",
+  "豚ひき肉": "豚肉",
+  "豚ミンチ": "豚肉",
+  "豚もも": "豚肉",
+  "豚ヒレ": "豚肉",
+  "スペアリブ": "豚肉",
+  "豚肉": "豚肉",
+
+  // 牛肉
+  "牛バラ": "牛肉",
+  "牛ばら": "牛肉",
+  "牛ロース": "牛肉",
+  "牛肩ロース": "牛肉",
+  "牛こま": "牛肉",
+  "牛小間": "牛肉",
+  "牛切り落とし": "牛肉",
+  "牛ひき肉": "牛肉",
+  "牛ミンチ": "牛肉",
+  "牛もも": "牛肉",
+  "牛ヒレ": "牛肉",
+  "牛タン": "牛肉",
+  "牛すじ": "牛肉",
+  "ステーキ肉": "牛肉",
+  "牛肉": "牛肉",
+
+  // ジビエ
+  "鹿肉": "ジビエ",
+  "猪肉": "ジビエ",
+  "いのしし肉": "ジビエ",
+  "鴨肉": "ジビエ",
+  "ラム肉": "ジビエ",
+  "羊肉": "ジビエ",
+  "馬肉": "ジビエ"
+};
+const fishDatabase = {
+  // 鮭
+  "塩鮭": "鮭",
+  "銀鮭": "鮭",
+  "紅鮭": "鮭",
+  "秋鮭": "鮭",
+  "生鮭": "鮭",
+  "サーモン": "鮭",
+  "鮭": "鮭",
+  "しゃけ": "鮭",
+
+  // マグロ
+  "ネギトロ": "マグロ",
+  "まぐろたたき": "マグロ",
+  "マグロたたき": "マグロ",
+  "本マグロ": "マグロ",
+  "びんちょうまぐろ": "マグロ",
+  "ビンチョウマグロ": "マグロ",
+  "キハダマグロ": "マグロ",
+  "メバチマグロ": "マグロ",
+  "まぐろ": "マグロ",
+  "マグロ": "マグロ",
+
+  // サバ
+  "塩サバ": "サバ",
+  "塩さば": "サバ",
+  "しめ鯖": "サバ",
+  "しめさば": "サバ",
+  "サバ": "サバ",
+  "さば": "サバ",
+  "鯖": "サバ",
+
+  // アジ
+  "アジの開き": "アジ",
+  "あじの開き": "アジ",
+  "アジ": "アジ",
+  "あじ": "アジ",
+  "鯵": "アジ",
+
+  // ブリ
+  "ぶり切り身": "ブリ",
+  "ブリ切り身": "ブリ",
+  "ハマチ": "ブリ",
+  "はまち": "ブリ",
+  "ブリ": "ブリ",
+  "ぶり": "ブリ",
+
+  // カツオ
+  "カツオのたたき": "カツオ",
+  "かつおのたたき": "カツオ",
+  "鰹のたたき": "カツオ",
+  "カツオ": "カツオ",
+  "かつお": "カツオ",
+  "鰹": "カツオ",
+
+  // タイ
+  "真鯛": "タイ",
+  "まだい": "タイ",
+  "鯛": "タイ",
+  "タイ": "タイ",
+
+  // イワシ
+  "いわし": "イワシ",
+  "イワシ": "イワシ",
+  "鰯": "イワシ",
+
+  // サンマ
+  "さんま": "サンマ",
+  "サンマ": "サンマ",
+  "秋刀魚": "サンマ",
+
+  // タラ
+  "銀だら": "タラ",
+  "銀ダラ": "タラ",
+  "真鱈": "タラ",
+  "たら": "タラ",
+  "タラ": "タラ",
+  "鱈": "タラ",
+
+  // カレイ
+  "カレイ": "カレイ",
+  "かれい": "カレイ",
+  "鰈": "カレイ",
+
+  // ヒラメ
+  "ヒラメ": "ヒラメ",
+  "ひらめ": "ヒラメ",
+  "平目": "ヒラメ",
+
+  // うなぎ
+  "うなぎ蒲焼": "うなぎ",
+  "うなぎの蒲焼": "うなぎ",
+  "ウナギ": "うなぎ",
+  "うなぎ": "うなぎ",
+  "鰻": "うなぎ",
+
+  // エビ
+  "ブラックタイガー": "エビ",
+  "むきえび": "エビ",
+  "むきエビ": "エビ",
+  "甘エビ": "エビ",
+  "甘えび": "エビ",
+  "車海老": "エビ",
+  "エビ": "エビ",
+  "えび": "エビ",
+  "海老": "エビ",
+
+  // カニ
+  "カニカマ": "カニ",
+  "かにかま": "カニ",
+  "ズワイガニ": "カニ",
+  "タラバガニ": "カニ",
+  "カニ": "カニ",
+  "かに": "カニ",
+  "蟹": "カニ",
+
+  // イカ
+  "するめいか": "イカ",
+  "スルメイカ": "イカ",
+  "やりいか": "イカ",
+  "ヤリイカ": "イカ",
+  "いか": "イカ",
+  "イカ": "イカ",
+  "烏賊": "イカ",
+
+  // タコ
+  "ゆでだこ": "タコ",
+  "茹でだこ": "タコ",
+  "たこ": "タコ",
+  "タコ": "タコ",
+  "蛸": "タコ",
+
+  // 貝類
+  "ホタテ": "貝類",
+  "ほたて": "貝類",
+  "帆立": "貝類",
+  "あさり": "貝類",
+  "アサリ": "貝類",
+  "しじみ": "貝類",
+  "シジミ": "貝類",
+  "牡蠣": "貝類",
+  "かき": "貝類",
+  "カキ": "貝類",
+  "はまぐり": "貝類",
+  "ハマグリ": "貝類",
+
+  // 刺身
+  "刺身盛り合わせ": "刺身",
+  "お刺身盛り合わせ": "刺身",
+  "刺身盛合せ": "刺身",
+  "刺身セット": "刺身",
+  "お刺身": "刺身",
+  "刺身": "刺身",
+
+  // その他
+  "しらす": "その他",
+  "ちりめんじゃこ": "その他",
+  "明太子": "その他",
+  "たらこ": "その他",
+  "数の子": "その他",
+  "ホッケ": "その他",
+  "ほっけ": "その他"
+};
+const drinkDatabase = {
+  "豆乳": "豆乳"
+};
+const dairyDatabase = {
+  // 卵
+  "温泉卵": "卵",
+  "温泉たまご": "卵",
+  "ゆで卵": "卵",
+  "ゆでたまご": "卵",
+  "煮卵": "卵",
+  "味付け卵": "卵",
+  "味玉": "卵",
+  "生卵": "卵",
+  "たまご": "卵",
+  "タマゴ": "卵",
+  "卵": "卵",
+
+  // 牛乳
+  "低脂肪乳": "牛乳",
+  "無脂肪乳": "牛乳",
+  "加工乳": "牛乳",
+  "乳飲料": "牛乳",
+  "ミルク": "牛乳",
+  "牛乳": "牛乳",
+
+  // ヨーグルト
+  "飲むヨーグルト": "ヨーグルト",
+  "のむヨーグルト": "ヨーグルト",
+  "ギリシャヨーグルト": "ヨーグルト",
+  "プレーンヨーグルト": "ヨーグルト",
+  "ヨーグルト": "ヨーグルト",
+
+  // チーズ
+  "スライスチーズ": "チーズ",
+  "とろけるチーズ": "チーズ",
+  "ピザ用チーズ": "チーズ",
+  "粉チーズ": "チーズ",
+  "クリームチーズ": "チーズ",
+  "カッテージチーズ": "チーズ",
+  "モッツァレラチーズ": "チーズ",
+  "モッツァレラ": "チーズ",
+  "カマンベールチーズ": "チーズ",
+  "カマンベール": "チーズ",
+  "チーズ": "チーズ",
+
+  // バター
+  "無塩バター": "バター",
+  "有塩バター": "バター",
+  "発酵バター": "バター",
+  "マーガリン": "バター",
+  "バター": "バター",
+
+  // 生クリーム
+  "ホイップクリーム": "生クリーム",
+  "ホイップ": "生クリーム",
+  "生クリーム": "生クリーム",
+
+  // その他
+  "練乳": "その他",
+  "コンデンスミルク": "その他"
+};
+const stapleDatabase = {
+  // 白米
+  "白米": "白米",
+  "ご飯": "白米",
+  "ごはん": "白米",
+  "ライス": "白米",
+  "米": "白米",
+
+  // 玄米
+  "玄米": "玄米",
+
+  // もち米
+  "もち米": "もち米",
+
+  // 食パン
+  "食パン": "食パン",
+  "トースト": "食パン",
+
+  // 菓子パン
+  "菓子パン": "菓子パン",
+  "あんぱん": "菓子パン",
+  "アンパン": "菓子パン",
+  "クリームパン": "菓子パン",
+  "メロンパン": "菓子パン",
+  "クロワッサン": "菓子パン",
+  "ロールパン": "菓子パン",
+
+  // パスタ
+  "パスタ": "パスタ",
+  "スパゲッティ": "パスタ",
+  "スパゲティ": "パスタ",
+
+  // うどん
+  "うどん": "うどん",
+
+  // そば
+  "そば": "そば",
+  "蕎麦": "そば",
+
+  // そうめん
+  "そうめん": "そうめん",
+  "素麺": "そうめん",
+
+  // ラーメン
+  "ラーメン": "ラーメン",
+  "中華麺": "ラーメン",
+
+  // 焼きそば
+  "焼きそば": "焼きそば",
+  "やきそば": "焼きそば"
+};
+function autoSelectFoodCategory() {
+  const foodName = document
+    .getElementById("foodName")
+    .value
+    .replace(/\s+/g, "")
+    .toLowerCase();
+
+  if (!foodName) {
+    return;
+  }
+
+  const matchedVegetable = Object.keys(vegetableDatabase)
+    .sort(function(a, b) {
+      return b.length - a.length;
+    })
+    .find(function(name) {
+      return foodName.includes(name.toLowerCase());
+    });
+
+  if (matchedVegetable) {
+    document.getElementById("foodCategory").value = "野菜";
+    setDefaultUnitByCategory();
+
+    document.getElementById("foodType").value =
+      vegetableDatabase[matchedVegetable];
+
+    return;
+  }
+
+  const matchedMeat = Object.keys(meatDatabase)
+    .sort(function(a, b) {
+      return b.length - a.length;
+    })
+    .find(function(name) {
+      return foodName.includes(name.toLowerCase());
+    });
+
+  if (matchedMeat) {
+    document.getElementById("foodCategory").value = "肉";
+    setDefaultUnitByCategory();
+
+    document.getElementById("foodType").value =
+      meatDatabase[matchedMeat];
+
+    return;
+  }
+
+  const matchedFish = Object.keys(fishDatabase)
+    .sort(function(a, b) {
+      return b.length - a.length;
+    })
+    .find(function(name) {
+      return foodName.includes(name.toLowerCase());
+    });
+
+  if (matchedFish) {
+    document.getElementById("foodCategory").value = "魚";
+    setDefaultUnitByCategory();
+
+    document.getElementById("foodType").value =
+      fishDatabase[matchedFish];
+  }
+  const matchedDrink = Object.keys(drinkDatabase)
+    .sort(function(a, b) {
+      return b.length - a.length;
+    })
+    .find(function(name) {
+      return foodName.includes(name.toLowerCase());
+    });
+
+  if (matchedDrink) {
+    document.getElementById("foodCategory").value = "飲み物";
+
+    setDefaultUnitByCategory();
+
+    document.getElementById("foodType").value =
+      drinkDatabase[matchedDrink];
+  }
+  const matchedDairy = Object.keys(dairyDatabase)
+    .sort(function(a, b) {
+      return b.length - a.length;
+    })
+    .find(function(name) {
+      return foodName.includes(name.toLowerCase());
+    });
+
+  if (matchedDairy) {
+    document.getElementById("foodCategory").value = "卵・乳製品";
+
+    setDefaultUnitByCategory();
+
+    document.getElementById("foodType").value =
+      dairyDatabase[matchedDairy];
+  }
+
+const matchedStaple = Object.keys(stapleDatabase)
+  .sort(function(a, b) {
+    return b.length - a.length;
+  })
+  .find(function(name) {
+    return foodName.includes(name.toLowerCase());
+  });
+
+if (matchedStaple) {
+  document.getElementById("foodCategory").value = "主食";
+
+  setDefaultUnitByCategory();
+
+  document.getElementById("foodType").value =
+    stapleDatabase[matchedStaple];
+}
+
+}
+function setDefaultUnitByCategory() {
+    const category = document.getElementById("foodCategory").value;
+    const unit = document.getElementById("foodUnit");
+const foodTypeField = document.getElementById("foodTypeField");
+
+
+    const foodType = document.getElementById("foodType");
+
+const foodTypes = {
+  "肉": ["鶏肉", "豚肉", "牛肉", "牛豚合い挽き","ジビエ"],
+  "魚": [
+  "鮭",
+  "マグロ",
+  "サバ",
+  "アジ",
+  "ブリ",
+  "カツオ",
+  "タイ",
+  "イワシ",
+  "サンマ",
+  "タラ",
+  "カレイ",
+  "ヒラメ",
+  "うなぎ",
+  "エビ",
+  "カニ",
+  "イカ",
+  "タコ",
+  "貝類",
+  "刺身",
+  "その他"
+],
+  "野菜": [
+  "葉物",
+  "根菜",
+  "実野菜",
+  "花野菜",
+  "茎野菜",
+  "香味野菜",
+  "豆類",
+  "きのこ",
+  "その他"
+],
+  "果物": ["りんご", "バナナ", "みかん", "ぶどう", "その他"],
+"卵・乳製品": ["卵", "牛乳", "チーズ", "ヨーグルト", "バター", "生クリーム", "その他"],
+"主食": [
+  "白米",
+  "玄米",
+  "もち米",
+  "食パン",
+  "菓子パン",
+  "パスタ",
+  "うどん",
+  "そば",
+  "そうめん",
+  "ラーメン",
+  "焼きそば",
+  "その他"
+],
+"加工食品": [
+    "豆腐",
+    "納豆",
+    "ハム",
+    "ベーコン",
+    "ソーセージ",
+    "ちくわ",
+    "かまぼこ",
+    "キムチ",
+    "漬物",
+    "缶詰",
+    "レトルト食品",
+    "その他"
+],
+"飲み物": [
+  "水",
+  "お茶",
+  "コーヒー",
+  "牛乳",
+  "ジュース",
+  "炭酸飲料",
+  "お酒",
+  "スポーツドリンク",
+  "豆乳",
+  "その他"
+]
+};
+
+if (foodTypes[category]) {
+  foodTypeField.style.display = "block";
+  foodType.innerHTML = '<option value="">選択してください</option>';
+
+  foodTypes[category].forEach(function(item) {
+    foodType.innerHTML += '<option value="' + item + '">' + item + '</option>';
+  });
+} else {
+  foodTypeField.style.display = "none";
+}
+    switch (category) {
+        case "肉":
+        case "魚":
+            unit.value = "g";
+            break;
+
+        case "卵・乳製品":
+            unit.value = "個";
+            break;
+
+        case "野菜":
+        case "果物":
+            unit.value = "個";
+            break;
+
+        case "飲み物":
+            unit.value = "ml";
+            break;
+
+        default:
+            unit.value = "個";
+            break;
+    }
+}
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function escapeForAttribute(value) {
+      return String(value ?? "")
+        .replaceAll("\\", "\\\\")
+        .replaceAll("'", "\\'");
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+
+      toast.textContent = message;
+      toast.classList.add("show");
+
+      clearTimeout(toastTimer);
+
+      toastTimer = setTimeout(function() {
+        toast.classList.remove("show");
+      }, 2200);
+    }
+function renderShoppingList() {
+    const shoppingList = document.getElementById("shoppingFoodList");
+
+    const shoppingFoods = foods.filter(function(food) {
+        return isFoodBuyNext(food);
+    });
+
+    const shoppingSeasonings = seasonings.filter(function(item) {
+        return item.buyNext;
+    });
+
+    if (shoppingFoods.length === 0 && shoppingSeasonings.length === 0) {
+        shoppingList.innerHTML = createEmptyHtml("次回購入はありません。");
+        return;
+    }
+
+    let html = "";
+
+    if (shoppingFoods.length > 0) {
+        html +=
+            '<section class="category-block">' +
+            '<div class="category-heading">' +
+            '<h3>食材・飲み物</h3>' +
+            '<span class="category-count">' + shoppingFoods.length + '件</span>' +
+            '</div>' +
+            sortFoodsByExpiry(shoppingFoods)
+                .map(function(food) {
+                    return createFoodHtml(food, false, true);
+                })
+                .join("") +
+            '</section>';
+    }
+
+    if (shoppingSeasonings.length > 0) {
+        html +=
+            '<section class="category-block">' +
+            '<div class="category-heading">' +
+            '<h3>調味料</h3>' +
+            '<span class="category-count">' + shoppingSeasonings.length + '件</span>' +
+            '</div>';
+
+        html += shoppingSeasonings
+            .slice()
+            .sort(function(a, b) {
+                return String(a.name).localeCompare(String(b.name), "ja");
+            })
+            .map(function(item) {
+                const amountText = item.amount || "未入力";
+                const locationText = item.location || "未設定";
+
+                return (
+                    '<article class="food-item safe">' +
+                    '<div class="food-heading">' +
+                    '<h3 class="food-name">' + escapeHtml(item.name) + '</h3>' +
+                    '<span class="status-badge safe">調味料</span>' +
+                    '</div>' +
+                    '<div class="food-info">' +
+                    '保存：' + escapeHtml(locationText) + '<br>' +
+                    '残量・数量：' + escapeHtml(amountText) +
+                    '</div>' +
+                    '<div class="item-actions">' +
+                    '<button class="small-button" type="button" onclick="toggleBuyNext(' +
+                    item.id +
+                    ')">✅🛒</button>' +
+                    '</div>' +
+                    '</article>'
+                );
+            })
+            .join("");
+
+        html += '</section>';
+    }
+
+    shoppingList.innerHTML = html;
+}
+
+function showShoppingList() {
+    showScreen("shoppingScreen");
+}
+    renderHome();
+  </script>
+</body>
+</html> 
