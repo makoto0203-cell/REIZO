@@ -2701,6 +2701,27 @@ if (foodTypes[category]) {
         toast.classList.remove("show");
       }, 2200);
     }
+function toggleShoppingItem(id) {
+    const food = foods.find(function(item) {
+        return item.id === id;
+    });
+
+    if (!food) {
+        return;
+    }
+
+    food.shopping = !food.shopping;
+
+    saveFoods();
+    renderCategories();
+    renderHome();
+
+    showToast(
+        food.shopping
+            ? "買い物リストに追加しました"
+            : "買い物リストから外しました"
+    );
+}
 function showShoppingList() {
     showScreen("seasoningScreen");
 
