@@ -2748,36 +2748,7 @@ function toggleShoppingItem(id) {
             : "買い物リストから外しました"
     );
 }
-function createSeasoningHtml(seasoning) {
-    const expiryText = seasoning.expiry
-        ? seasoning.expiry
-        : "期限未入力";
 
-    const amountText = seasoning.amount
-        ? seasoning.amount
-        : "数量未入力";
-
-    return (
-        '<article class="food-item safe">' +
-            '<div class="food-heading">' +
-                '<h3 class="food-name">🧂 ' +
-                    escapeHtml(seasoning.name) +
-                '</h3>' +
-                '<span class="status-badge safe">調味料</span>' +
-            '</div>' +
-            '<div class="food-info">' +
-                '残量・数量：' +
-                escapeHtml(amountText) +
-                '<br>' +
-                '保存：' +
-                escapeHtml(seasoning.location || "未設定") +
-                '<br>' +
-                '期限：' +
-                escapeHtml(expiryText) +
-            '</div>' +
-        '</article>'
-    );
-}
 function renderShoppingFoodList() {
     const shoppingFoods = foods.filter(function(food) {
         return food.shopping;
