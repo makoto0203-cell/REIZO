@@ -869,6 +869,222 @@
       font-size: 10px;
     }
 
+
+    /* 冷凍庫 Ver1.0 */
+    .stock-header-actions {
+      margin-left: auto;
+    }
+
+    .freezer-toolbar {
+      display: grid;
+      grid-template-columns: 1fr 125px;
+      gap: 9px;
+      margin-bottom: 13px;
+    }
+
+    .freezer-category {
+      margin-bottom: 16px;
+    }
+
+    .freezer-category-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin: 0 2px 8px;
+    }
+
+    .freezer-category-header h3 {
+      margin: 0;
+      font-size: 17px;
+    }
+
+    .freezer-manual-actions {
+      display: flex;
+      gap: 5px;
+    }
+
+    .freezer-order-button {
+      min-width: 34px;
+      min-height: 32px;
+      padding: 5px 8px;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      background: white;
+      color: var(--main-dark);
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .freezer-item-wrap {
+      position: relative;
+      margin-bottom: 10px;
+      overflow: hidden;
+      border-radius: 16px;
+      touch-action: pan-y;
+    }
+
+    .freezer-item-wrap .food-item {
+      margin-bottom: 0;
+    }
+
+    .freezer-item-meta {
+      margin-top: 7px;
+      color: var(--subtext);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .freezer-kind-badge {
+      display: inline-block;
+      margin-right: 6px;
+      padding: 3px 7px;
+      border-radius: 999px;
+      background: var(--main-light);
+      color: var(--main-dark);
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .freeze-swipe-wrap {
+      position: relative;
+      margin-bottom: 10px;
+      overflow: hidden;
+      border-radius: 16px;
+      background: #e9f6ff;
+      touch-action: pan-y;
+    }
+
+    .freeze-swipe-action {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 104px;
+      border: 0;
+      color: #155b7a;
+      background: #dff3ff;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .freeze-swipe-card {
+      position: relative;
+      z-index: 1;
+      background: white;
+      transition: transform 0.18s ease;
+    }
+
+    .freeze-swipe-wrap.swiped .freeze-swipe-card {
+      transform: translateX(-104px);
+    }
+
+    .freeze-swipe-card .food-item {
+      margin-bottom: 0;
+    }
+
+    .freeze-modal {
+      position: fixed;
+      z-index: 300;
+      inset: 0;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 16px;
+      background: rgba(12, 24, 21, 0.42);
+    }
+
+    .freeze-modal.show {
+      display: flex;
+    }
+
+    .freeze-modal-card {
+      width: min(100%, 520px);
+      padding: 18px;
+      border-radius: 20px;
+      background: white;
+      box-shadow: 0 14px 45px rgba(0, 0, 0, 0.22);
+    }
+
+    .freeze-modal-card h3 {
+      margin: 0 0 5px;
+      font-size: 19px;
+    }
+
+    .freeze-modal-note {
+      margin: 0 0 14px;
+      color: var(--subtext);
+      font-size: 12px;
+    }
+
+    .freeze-wheel-value {
+      margin-bottom: 10px;
+      color: var(--main-dark);
+      text-align: center;
+      font-size: 28px;
+      font-weight: 900;
+    }
+
+    .freeze-wheel {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .freeze-wheel-column {
+      height: 160px;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: #f8fbfa;
+      scroll-snap-type: y mandatory;
+      scrollbar-width: none;
+      overscroll-behavior: contain;
+    }
+
+    .freeze-wheel-column::-webkit-scrollbar {
+      display: none;
+    }
+
+    .freeze-wheel-spacer {
+      height: 60px;
+    }
+
+    .freeze-wheel-option {
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      scroll-snap-align: center;
+      font-size: 22px;
+      font-weight: 800;
+    }
+
+    .freeze-wheel-labels {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin: -8px 0 13px;
+      color: var(--subtext);
+      text-align: center;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .toast-action-button {
+      margin-left: 10px;
+      padding: 5px 9px;
+      border: 1px solid rgba(255,255,255,0.65);
+      border-radius: 999px;
+      color: white;
+      background: transparent;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
     @media (max-width: 390px) {
       .two-columns,
       .button-row {
@@ -1186,6 +1402,9 @@
         </button>
 
         <h2>冷蔵庫の中</h2>
+        <div class="stock-header-actions">
+          <button class="small-button" type="button" onclick="showScreen('freezerScreen')">❄️ 冷凍庫</button>
+        </div>
       </header>
 
       <div class="search-area">
@@ -1205,6 +1424,25 @@
 
       <div id="stockCategoryTabs" class="category-tabs"></div>
       <div id="stockList"></div>
+    </section>
+
+    <!-- 冷凍庫 -->
+    <section id="freezerScreen" class="screen">
+      <header class="page-header">
+        <button class="back-button" type="button" onclick="showScreen('stockScreen')" aria-label="戻る">←</button>
+        <h2>冷凍庫</h2>
+      </header>
+
+      <div class="freezer-toolbar">
+        <input id="freezerSearch" type="search" placeholder="冷凍庫を検索" oninput="renderFreezer()">
+        <select id="freezerSort" onchange="changeFreezerSort()">
+          <option value="expiry">賞味期限順</option>
+          <option value="name">名前順</option>
+          <option value="manual">手動順</option>
+        </select>
+      </div>
+
+      <div id="freezerList"></div>
     </section>
 
     <!-- カテゴリー -->
@@ -1296,7 +1534,7 @@
             type="text"
             maxlength="40"
             placeholder="例：しょうゆ"
-          oninput="updateSeasoningAutoSettings()"
+          oninput="autoSelectSeasoningType()"
           >
         </div>
 <div class="field">
@@ -1304,72 +1542,36 @@
 
   <select id="seasoningType">
     <option value="">選択してください</option>
-    <option value="基本調味料">基本調味料</option>
-    <option value="ソース">ソース</option>
-    <option value="油">油</option>
-    <option value="だし">だし</option>
-    <option value="香辛料">香辛料</option>
-    <option value="ドレッシング">ドレッシング</option>
-    <option value="その他">その他</option>
+    <option value="基本調味料">🧂 基本調味料</option>
+    <option value="ソース">🥫 ソース</option>
+    <option value="油">🫗 油</option>
+    <option value="だし">🍲 だし</option>
+    <option value="香辛料">🌶️ 香辛料</option>
+    <option value="ドレッシング">🥗 ドレッシング</option>
+    <option value="その他">📦 その他</option>
   </select>
 </div>
-        <input id="seasoningAmount" type="hidden">
-
         <div class="two-columns">
           <div class="field">
-            <label for="seasoningCapacity">容量</label>
+            <label for="seasoningAmount">残量・数量</label>
+
             <input
-              id="seasoningCapacity"
-              type="number"
-              min="0"
-              step="1"
-              inputmode="decimal"
-              placeholder="例：500"
-              oninput="updateSeasoningAutoSettings()"
+              id="seasoningAmount"
+              type="text"
+              maxlength="30"
+              placeholder="例：半分、1本"
             >
           </div>
 
           <div class="field">
-            <label for="seasoningCapacityUnit">容量単位</label>
-            <select id="seasoningCapacityUnit">
-              <option value="">未選択</option>
-              <option value="g">g</option>
-              <option value="ml">ml</option>
+            <label for="seasoningLocation">保存場所</label>
+
+            <select id="seasoningLocation">
+              <option value="冷蔵">冷蔵</option>
+              <option value="常温">常温</option>
+              <option value="冷凍">冷凍</option>
             </select>
           </div>
-        </div>
-
-        <div class="two-columns">
-          <div class="field">
-            <label for="seasoningQuantity">数量</label>
-            <input
-              id="seasoningQuantity"
-              type="number"
-              min="1"
-              step="1"
-              inputmode="numeric"
-              value="1"
-            >
-          </div>
-
-          <div class="field">
-            <label for="seasoningUnit">単位</label>
-            <select id="seasoningUnit">
-              <option value="">未選択</option>
-              <option value="本">本</option>
-              <option value="袋">袋</option>
-              <option value="個">個</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="field">
-          <label for="seasoningLocation">保存場所</label>
-          <select id="seasoningLocation">
-            <option value="冷蔵">冷蔵</option>
-            <option value="常温">常温</option>
-            <option value="冷凍">冷凍</option>
-          </select>
         </div>
 
         <div class="field">
@@ -1410,6 +1612,20 @@
 
   </main>
 
+  <div id="freezeSplitModal" class="freeze-modal" aria-hidden="true">
+    <div class="freeze-modal-card" role="dialog" aria-modal="true" aria-labelledby="freezeSplitTitle">
+      <h3 id="freezeSplitTitle">❄️ 小分け（冷凍）</h3>
+      <p id="freezeSplitFoodName" class="freeze-modal-note"></p>
+      <div id="freezeWheelValue" class="freeze-wheel-value">000g</div>
+      <div id="freezeWheel" class="freeze-wheel"></div>
+      <div class="freeze-wheel-labels"><span>100の位</span><span>10の位</span><span>1の位</span></div>
+      <div class="button-row">
+        <button class="secondary-button" type="button" onclick="closeFreezeSplitModal()">キャンセル</button>
+        <button class="primary-button" type="button" onclick="confirmFreezeSplit()">冷凍する</button>
+      </div>
+    </div>
+  </div>
+
   <div id="toast" class="toast"></div>
 
   <script>
@@ -1418,6 +1634,8 @@
     const FOOD_PREFERENCES_STORAGE_KEY = "reizo_food_preferences_v1";
     const FOOD_LEARNING_ENABLED_KEY = "reizo_food_learning_enabled_v1";
     const DRINK_VARIANT_PREFERENCES_STORAGE_KEY = "reizo_drink_variant_preferences_v1";
+    const FREEZER_SORT_STORAGE_KEY = "reizo_freezer_sort_v1";
+    const FREEZER_ORDER_STORAGE_KEY = "reizo_freezer_order_v1";
 
     let foods = readStorage(FOOD_STORAGE_KEY);
     let seasonings = readStorage(SEASONING_STORAGE_KEY);
@@ -1430,6 +1648,13 @@
     let foodPreferences = readObjectStorage(FOOD_PREFERENCES_STORAGE_KEY);
     let foodLearningEnabled = localStorage.getItem(FOOD_LEARNING_ENABLED_KEY) !== "false";
     let drinkVariantPreferences = readObjectStorage(DRINK_VARIANT_PREFERENCES_STORAGE_KEY);
+    let freezerSort = localStorage.getItem(FREEZER_SORT_STORAGE_KEY) || "expiry";
+    let freezerOrder = readObjectStorage(FREEZER_ORDER_STORAGE_KEY);
+    let freezeSplitFoodId = null;
+    let freezeWheelDigits = [0, 0, 0];
+    let freezeSwipeStartX = 0;
+    let freezeSwipeStartY = 0;
+    let freezeUndoAction = null;
 
     function readStorage(key) {
       try {
@@ -1493,6 +1718,11 @@
 
       if (screenId === "shoppingScreen") {
         renderShoppingList();
+      }
+
+      if (screenId === "freezerScreen") {
+        syncFreezerSortControl();
+        renderFreezer();
       }
 
       window.scrollTo({
@@ -1669,7 +1899,14 @@ const shoppingFoodCount = foods.filter(function(food) {
         return;
       }
 
-      if (!expiry) {
+      const existingFood = editingId
+        ? foods.find(function(food) { return String(food.id) === String(editingId); })
+        : null;
+      const isSelfFrozenSave =
+        location === "冷凍" &&
+        ((existingFood && existingFood.freezerKind === "self") || category !== "冷凍食品");
+
+      if (!expiry && !isSelfFrozenSave) {
         alert("賞味期限・消費期限を入力してください。");
         document.getElementById("foodExpiry").focus();
         return;
@@ -1691,9 +1928,11 @@ const shoppingFoodCount = foods.filter(function(food) {
             unit: unit,
             capacity: capacity,
             drinkVariantLearningKey: drinkVariantLearningKey,
-            expiry: expiry,
+            expiry: isSelfFrozenSave ? "" : expiry,
             purchaseDate: purchaseDate,
             note: note,
+            freezerKind: location === "冷凍" ? (isSelfFrozenSave ? "self" : "commercial") : undefined,
+            frozenAt: isSelfFrozenSave ? (foods[foodIndex].frozenAt || getTodayString()) : "",
             updatedAt: new Date().toISOString()
           };
         }
@@ -1710,9 +1949,11 @@ const shoppingFoodCount = foods.filter(function(food) {
           unit: unit,
           capacity: capacity,
           drinkVariantLearningKey: drinkVariantLearningKey,
-          expiry: expiry,
+          expiry: isSelfFrozenSave ? "" : expiry,
           purchaseDate: purchaseDate,
           note: note,
+          freezerKind: location === "冷凍" ? (isSelfFrozenSave ? "self" : "commercial") : undefined,
+          frozenAt: isSelfFrozenSave ? getTodayString() : "",
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         });
@@ -1902,7 +2143,10 @@ function toggleShoppingItem(id) {
 
       stockList.innerHTML = filteredFoods
         .map(function(food) {
-          return createFoodHtml(food, true);
+          if (food.location === "冷凍") {
+            return createFoodHtml(food, true);
+          }
+          return createFreezeSwipeFoodHtml(food);
         })
         .join("");
     }
@@ -2182,21 +2426,6 @@ food.id +
       document.getElementById("seasoningAmount").value =
         seasoning.amount || "";
 
-      document.getElementById("seasoningCapacity").value =
-        seasoning.capacity || "";
-
-      document.getElementById("seasoningCapacityUnit").value =
-        seasoning.capacityUnit || "";
-
-      document.getElementById("seasoningQuantity").value =
-        seasoning.quantity || 1;
-
-      document.getElementById("seasoningUnit").value =
-        seasoning.unit || "";
-
-      document.getElementById("seasoningType").value =
-        seasoning.type || "その他";
-
       document.getElementById("seasoningLocation").value =
         seasoning.location || "常温";
 
@@ -2215,68 +2444,69 @@ food.id +
       showScreen("seasoningFormScreen");
     }
 const seasoningDatabase = {
-  "しょうゆ": { type: "基本調味料", unit: "本", location: "冷蔵", capacityUnit: "ml", hasCapacityCandidates: true },
-  "醤油": { type: "基本調味料", unit: "本", location: "冷蔵", capacityUnit: "ml", hasCapacityCandidates: true },
-  "塩": { type: "基本調味料", unit: "本", location: "常温", capacityUnit: "g", hasCapacityCandidates: false, saltRule: true },
-  "砂糖": { type: "基本調味料", unit: "袋", location: "常温", capacityUnit: "g", hasCapacityCandidates: false },
-  "みりん": { type: "基本調味料", unit: "本", location: "常温", capacityUnit: "ml", hasCapacityCandidates: true },
-  "料理酒": { type: "基本調味料", unit: "本", location: "常温", capacityUnit: "ml", hasCapacityCandidates: true },
-  "はちみつ": { type: "基本調味料", unit: "本", location: "常温", capacityUnit: "g", hasCapacityCandidates: false },
+  // 基本調味料
+  "しょうゆ": "基本調味料",
+  "醤油": "基本調味料",
+  "塩": "基本調味料",
+  "砂糖": "基本調味料",
+  "こしょう": "基本調味料",
+  "胡椒": "基本調味料",
+  "ブラックペッパー": "基本調味料",
+  "白こしょう": "基本調味料",
 
-  "ケチャップ": { type: "ソース", unit: "本", location: "冷蔵", hasCapacityCandidates: false },
-  "マヨネーズ": { type: "ソース", unit: "本", location: "冷蔵", hasCapacityCandidates: false },
-  "中濃ソース": { type: "ソース", unit: "本", location: "冷蔵", hasCapacityCandidates: false },
-  "ウスターソース": { type: "ソース", unit: "本", location: "冷蔵", hasCapacityCandidates: false },
-  "とんかつソース": { type: "ソース", unit: "本", location: "冷蔵", hasCapacityCandidates: false },
-  "オイスターソース": { type: "ソース", unit: "本", location: "冷蔵", hasCapacityCandidates: true },
-  "焼肉のたれ": { type: "ソース", unit: "本", location: "冷蔵", hasCapacityCandidates: true },
-  "ポン酢": { type: "ソース", unit: "本", location: "冷蔵", capacityUnit: "ml", hasCapacityCandidates: true },
+  // ソース
+  "ケチャップ": "ソース",
+  "マヨネーズ": "ソース",
+  "中濃ソース": "ソース",
+  "ウスターソース": "ソース",
+  "とんかつソース": "ソース",
+  "オイスターソース": "ソース",
+  "焼肉のたれ": "ソース",
+  "ポン酢": "ソース",
 
-  "サラダ油": { type: "油", unit: "本", location: "常温", capacityUnit: "ml", hasCapacityCandidates: true },
-  "ごま油": { type: "油", unit: "本", location: "常温", capacityUnit: "ml", hasCapacityCandidates: true },
-  "オリーブオイル": { type: "油", unit: "本", location: "常温", capacityUnit: "ml", hasCapacityCandidates: true },
-  "米油": { type: "油", unit: "本", location: "常温", capacityUnit: "ml", hasCapacityCandidates: true },
+  // 油
+  "サラダ油": "油",
+  "オリーブオイル": "油",
+  "ごま油": "油",
+  "米油": "油",
 
-  "コンソメ": { type: "だし", unit: "袋", location: "常温", hasCapacityCandidates: false },
-  "鶏ガラスープ": { type: "だし", unit: "袋", location: "常温", hasCapacityCandidates: false },
-  "だしの素": { type: "だし", unit: "袋", location: "常温", hasCapacityCandidates: false, displayType: "和風だし" },
-  "和風だし": { type: "だし", unit: "袋", location: "常温", hasCapacityCandidates: false },
-  "白だし": { type: "だし", unit: "本", location: "冷蔵", capacityUnit: "ml", hasCapacityCandidates: true },
-  "めんつゆ": { type: "だし", unit: "本", location: "冷蔵", capacityUnit: "ml", hasCapacityCandidates: true },
+  // だし
+  "コンソメ": "だし",
+  "鶏ガラスープ": "だし",
+  "和風だし": "だし",
+  "白だし": "だし",
+  "めんつゆ": "だし",
 
-  "ブラックペッパー": { type: "香辛料", unit: "本", location: "常温", hasCapacityCandidates: false },
-  "白こしょう": { type: "香辛料", unit: "本", location: "常温", hasCapacityCandidates: false },
-  "塩こしょう": { type: "香辛料", unit: "本", location: "常温", hasCapacityCandidates: false },
-  "こしょう": { type: "香辛料", unit: "本", location: "常温", hasCapacityCandidates: false },
-  "胡椒": { type: "香辛料", unit: "本", location: "常温", hasCapacityCandidates: false },
-  "七味": { type: "香辛料", unit: "本", location: "常温", hasCapacityCandidates: false },
-  "一味": { type: "香辛料", unit: "本", location: "常温", hasCapacityCandidates: false },
-  "カレー粉": { type: "香辛料", unit: "本", location: "常温", hasCapacityCandidates: false },
-  "にんにくチューブ": { type: "香辛料", unit: "本", location: "冷蔵", hasCapacityCandidates: false },
-  "にんにく": { type: "香辛料", unit: "個", location: "常温", hasCapacityCandidates: false },
-  "しょうがチューブ": { type: "香辛料", unit: "本", location: "冷蔵", hasCapacityCandidates: false },
-  "しょうが": { type: "香辛料", unit: "個", location: "冷蔵", hasCapacityCandidates: false },
-  "わさび": { type: "香辛料", unit: "本", location: "冷蔵", hasCapacityCandidates: false },
-  "からし": { type: "香辛料", unit: "本", location: "冷蔵", hasCapacityCandidates: false },
+  // 香辛料
+  "七味": "香辛料",
+  "一味": "香辛料",
+  "カレー粉": "香辛料",
+  "にんにく": "香辛料",
+  "しょうが": "香辛料",
 
-  "シーザードレッシング": { type: "ドレッシング", unit: "本", location: "冷蔵", hasCapacityCandidates: false },
-  "ごまドレッシング": { type: "ドレッシング", unit: "本", location: "冷蔵", hasCapacityCandidates: false },
-  "和風ドレッシング": { type: "ドレッシング", unit: "本", location: "冷蔵", hasCapacityCandidates: false },
-  "青じそドレッシング": { type: "ドレッシング", unit: "本", location: "冷蔵", hasCapacityCandidates: false }
+  // ドレッシング
+  "シーザードレッシング": "ドレッシング",
+  "ごまドレッシング": "ドレッシング",
+  "和風ドレッシング": "ドレッシング",
+  "青じそドレッシング": "ドレッシング"
 };
-
-function getMatchedSeasoningSetting() {
+function autoSelectSeasoningType() {
+  
   const seasoningName = document
     .getElementById("seasoningName")
     .value
     .replace(/\s+/g, "")
     .toLowerCase();
 
+  const seasoningType =
+    document.getElementById("seasoningType");
+
   if (!seasoningName) {
-    return null;
+    seasoningType.value = "";
+    return;
   }
 
-  const matchedName = Object.keys(seasoningDatabase)
+  const matchedSeasoning = Object.keys(seasoningDatabase)
     .sort(function(a, b) {
       return b.length - a.length;
     })
@@ -2284,39 +2514,9 @@ function getMatchedSeasoningSetting() {
       return seasoningName.includes(name.toLowerCase());
     });
 
-  return matchedName ? seasoningDatabase[matchedName] : null;
-}
-
-function updateSeasoningAutoSettings() {
-  const setting = getMatchedSeasoningSetting();
-  const seasoningType = document.getElementById("seasoningType");
-  const seasoningUnit = document.getElementById("seasoningUnit");
-  const seasoningLocation = document.getElementById("seasoningLocation");
-  const seasoningCapacity = document.getElementById("seasoningCapacity");
-  const seasoningCapacityUnit = document.getElementById("seasoningCapacityUnit");
-
-  if (!setting) {
-    seasoningType.value = "その他";
-    seasoningLocation.value = "常温";
-    seasoningUnit.value = "";
-    seasoningCapacityUnit.value = "";
-    return;
-  }
-
-  seasoningType.value = setting.type;
-  seasoningLocation.value = setting.location;
-  seasoningCapacityUnit.value = setting.capacityUnit || seasoningCapacityUnit.value || "";
-
-  if (setting.saltRule) {
-    const capacity = Number(seasoningCapacity.value);
-    seasoningUnit.value = capacity > 230 ? "袋" : "本";
-  } else {
-    seasoningUnit.value = setting.unit || "";
-  }
-}
-
-function autoSelectSeasoningType() {
-  updateSeasoningAutoSettings();
+  seasoningType.value = matchedSeasoning
+    ? seasoningDatabase[matchedSeasoning]
+    : "";
 }
     function saveSeasoningFromForm() {
       const editingId =
@@ -2325,27 +2525,8 @@ function autoSelectSeasoningType() {
       const name =
         document.getElementById("seasoningName").value.trim();
 
-      const legacyAmount =
+      const amount =
         document.getElementById("seasoningAmount").value.trim();
-
-      const capacity =
-        document.getElementById("seasoningCapacity").value.trim();
-
-      const capacityUnit =
-        document.getElementById("seasoningCapacityUnit").value;
-
-      const quantity =
-        document.getElementById("seasoningQuantity").value || "1";
-
-      const unit =
-        document.getElementById("seasoningUnit").value;
-
-      const type =
-        document.getElementById("seasoningType").value || "その他";
-
-      const amount = capacity
-        ? capacity + (capacityUnit || "") + " × " + quantity + (unit || "")
-        : (quantity + (unit || "") || legacyAmount);
 
       const location =
         document.getElementById("seasoningLocation").value;
@@ -2371,11 +2552,6 @@ function autoSelectSeasoningType() {
           seasonings[index] = {
             ...seasonings[index],
             name: name,
-            type: type,
-            capacity: capacity,
-            capacityUnit: capacityUnit,
-            quantity: quantity,
-            unit: unit,
             amount: amount,
             location: location,
             expiry: expiry,
@@ -2389,11 +2565,6 @@ function autoSelectSeasoningType() {
         seasonings.push({
           id: Date.now(),
           name: name,
-          type: type,
-          capacity: capacity,
-          capacityUnit: capacityUnit,
-          quantity: quantity,
-          unit: unit,
           amount: amount,
           location: location,
           expiry: expiry,
@@ -2415,11 +2586,6 @@ function autoSelectSeasoningType() {
       document.getElementById("editingSeasoningId").value = "";
       document.getElementById("seasoningName").value = "";
       document.getElementById("seasoningAmount").value = "";
-      document.getElementById("seasoningCapacity").value = "";
-      document.getElementById("seasoningCapacityUnit").value = "";
-      document.getElementById("seasoningQuantity").value = "1";
-      document.getElementById("seasoningUnit").value = "";
-      document.getElementById("seasoningType").value = "";
       document.getElementById("seasoningLocation").value = "常温";
       document.getElementById("seasoningExpiry").value = "";
       document.getElementById("seasoningNote").value = "";
@@ -2523,13 +2689,7 @@ function toggleBuyNext(id) {
             ? seasoning.expiry
             : "未入力";
 
-          const capacityText = seasoning.capacity
-            ? seasoning.capacity + (seasoning.capacityUnit || "")
-            : "未入力";
-
-          const quantityText = seasoning.quantity
-            ? seasoning.quantity + (seasoning.unit || "")
-            : (seasoning.amount || "未入力");
+          const amountText = seasoning.amount || "未入力";
 
           const noteHtml = seasoning.note
             ? '<div class="food-note">メモ：' +
@@ -2552,17 +2712,11 @@ function toggleBuyNext(id) {
             "</span>" +
             "</div>" +
             '<div class="food-info">' +
-            "種類：" +
-            escapeHtml(seasoning.type || "その他") +
-            "<br>" +
             "保存：" +
             escapeHtml(seasoning.location || "未設定") +
             "<br>" +
-            "容量：" +
-            escapeHtml(capacityText) +
-            "<br>" +
-            "数量：" +
-            escapeHtml(quantityText) +
+            "残量・数量：" +
+            escapeHtml(amountText) +
             "<br>" +
             "期限：" +
             escapeHtml(expiryText) +
@@ -4432,16 +4586,337 @@ function populateFoodSuggestions() {
 
     function showToast(message) {
       const toast = document.getElementById("toast");
-
-      toast.textContent = message;
+      freezeUndoAction = null;
+      toast.innerHTML = '<span>' + escapeHtml(message) + '</span>';
       toast.classList.add("show");
-
       clearTimeout(toastTimer);
-
       toastTimer = setTimeout(function() {
         toast.classList.remove("show");
       }, 2200);
     }
+
+    function showUndoToast(message, undoAction) {
+      const toast = document.getElementById("toast");
+      freezeUndoAction = undoAction;
+      toast.innerHTML = '<span>' + escapeHtml(message) + '</span>' +
+        '<button class="toast-action-button" type="button" onclick="runFreezeUndo()">取り消す</button>';
+      toast.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function() {
+        freezeUndoAction = null;
+        toast.classList.remove("show");
+      }, 6000);
+    }
+
+    function runFreezeUndo() {
+      if (typeof freezeUndoAction !== "function") return;
+      const action = freezeUndoAction;
+      freezeUndoAction = null;
+      action();
+      document.getElementById("toast").classList.remove("show");
+      showToast("小分け（冷凍）を取り消しました");
+    }
+
+    function getFreezerKind(food) {
+      if (food.freezerKind === "self" || food.freezerKind === "commercial") {
+        return food.freezerKind;
+      }
+      return food.category === "冷凍食品" ? "commercial" : "self";
+    }
+
+    function getFrozenDate(food) {
+      return food.frozenAt || "";
+    }
+
+    function syncFreezerSortControl() {
+      const select = document.getElementById("freezerSort");
+      if (select) select.value = freezerSort;
+    }
+
+    function changeFreezerSort() {
+      const select = document.getElementById("freezerSort");
+      freezerSort = select ? select.value : "expiry";
+      localStorage.setItem(FREEZER_SORT_STORAGE_KEY, freezerSort);
+      renderFreezer();
+    }
+
+    function getFreezerCategoryOrder(categories) {
+      const saved = Array.isArray(freezerOrder.categories) ? freezerOrder.categories.slice() : [];
+      categories.forEach(function(category) {
+        if (!saved.includes(category)) saved.push(category);
+      });
+      return saved.filter(function(category) { return categories.includes(category); });
+    }
+
+    function getFreezerItemOrder(category, items) {
+      const all = freezerOrder.items && typeof freezerOrder.items === "object" ? freezerOrder.items : {};
+      const saved = Array.isArray(all[category]) ? all[category].map(String) : [];
+      items.forEach(function(item) {
+        if (!saved.includes(String(item.id))) saved.push(String(item.id));
+      });
+      return saved.filter(function(id) {
+        return items.some(function(item) { return String(item.id) === String(id); });
+      });
+    }
+
+    function saveFreezerOrder() {
+      writeStorage(FREEZER_ORDER_STORAGE_KEY, freezerOrder);
+    }
+
+    function renderFreezer() {
+      const list = document.getElementById("freezerList");
+      if (!list) return;
+      const search = document.getElementById("freezerSearch");
+      const searchText = search ? search.value.trim().toLowerCase() : "";
+      const frozenFoods = foods.filter(function(food) {
+        return food.location === "冷凍" && (!searchText || String(food.name || "").toLowerCase().includes(searchText));
+      });
+
+      if (frozenFoods.length === 0) {
+        list.innerHTML = createEmptyHtml(searchText ? "条件に一致する冷凍食品がありません。" : "冷凍庫に食品はありません。");
+        return;
+      }
+
+      const categoryMap = {};
+      frozenFoods.forEach(function(food) {
+        const category = food.category || "その他";
+        if (!categoryMap[category]) categoryMap[category] = [];
+        categoryMap[category].push(food);
+      });
+      let categories = Object.keys(categoryMap);
+
+      if (freezerSort === "manual") {
+        categories = getFreezerCategoryOrder(categories);
+      } else {
+        categories.sort(function(a, b) { return a.localeCompare(b, "ja"); });
+      }
+
+      list.innerHTML = categories.map(function(category, categoryIndex) {
+        let items = categoryMap[category].slice();
+        if (freezerSort === "name") {
+          items.sort(function(a, b) { return String(a.name).localeCompare(String(b.name), "ja"); });
+        } else if (freezerSort === "manual") {
+          const ids = getFreezerItemOrder(category, items);
+          items.sort(function(a, b) { return ids.indexOf(String(a.id)) - ids.indexOf(String(b.id)); });
+        } else {
+          items.sort(function(a, b) {
+            const aSelf = getFreezerKind(a) === "self";
+            const bSelf = getFreezerKind(b) === "self";
+            if (aSelf && bSelf) return String(getFrozenDate(a)).localeCompare(String(getFrozenDate(b)));
+            if (!aSelf && !bSelf) return String(a.expiry || "9999-12-31").localeCompare(String(b.expiry || "9999-12-31"));
+            return aSelf ? 1 : -1;
+          });
+        }
+
+        const categoryActions = freezerSort === "manual"
+          ? '<div class="freezer-manual-actions">' +
+            '<button class="freezer-order-button" type="button" onclick="moveFreezerCategory(' + categoryIndex + ',-1)">↑</button>' +
+            '<button class="freezer-order-button" type="button" onclick="moveFreezerCategory(' + categoryIndex + ',1)">↓</button>' +
+            '</div>'
+          : '';
+
+        return '<section class="freezer-category">' +
+          '<div class="freezer-category-header"><h3>' + escapeHtml(getCategoryDisplayName(category)) + '</h3>' +
+          categoryActions + '</div>' +
+          items.map(function(food, itemIndex) { return createFreezerItemHtml(food, category, itemIndex); }).join('') +
+          '</section>';
+      }).join('');
+    }
+
+    function createFreezerItemHtml(food, category, itemIndex) {
+      const selfFrozen = getFreezerKind(food) === "self";
+      const dateLabel = selfFrozen
+        ? '冷凍した日：' + escapeHtml(getFrozenDate(food) || "未設定")
+        : '賞味期限：' + escapeHtml(food.expiry || "未入力");
+      const status = selfFrozen ? { className: "safe", text: "自家冷凍" } : getFoodStatus(getDaysLeft(food.expiry));
+      const orderActions = freezerSort === "manual"
+        ? '<div class="freezer-manual-actions">' +
+          '<button class="freezer-order-button" type="button" onclick="moveFreezerItem(\'' + escapeForAttribute(category) + '\',' + itemIndex + ',-1)">↑</button>' +
+          '<button class="freezer-order-button" type="button" onclick="moveFreezerItem(\'' + escapeForAttribute(category) + '\',' + itemIndex + ',1)">↓</button>' +
+          '</div>'
+        : '';
+      return '<div class="freezer-item-wrap">' +
+        '<article class="food-item ' + status.className + '">' +
+        '<div class="food-heading"><h3 class="food-name">' + escapeHtml(food.name) + '</h3>' +
+        '<span class="status-badge ' + status.className + '">' + escapeHtml(status.text) + '</span></div>' +
+        '<div class="freezer-item-meta"><span class="freezer-kind-badge">' + (selfFrozen ? '自家冷凍' : '市販冷凍') + '</span>' +
+        escapeHtml(createAmountText(food)) + '<br>' + dateLabel + '</div>' +
+        (freezerSort === "manual" ? orderActions : '<div class="item-actions"><button class="small-button" type="button" onclick="editFood(' + food.id + ')">編集</button><button class="small-button" type="button" onclick="toggleShoppingItem(' + food.id + ')">' + (Boolean(food.shopping || food.buyNext) ? '✅🛒' : '🛒') + '</button></div>') +
+        '</article></div>';
+    }
+
+    function moveFreezerCategory(index, delta) {
+      const frozenFoods = foods.filter(function(food) { return food.location === "冷凍"; });
+      const categories = getFreezerCategoryOrder(Array.from(new Set(frozenFoods.map(function(food) { return food.category || "その他"; }))));
+      const target = index + delta;
+      if (target < 0 || target >= categories.length) return;
+      const temp = categories[index]; categories[index] = categories[target]; categories[target] = temp;
+      freezerOrder.categories = categories;
+      saveFreezerOrder();
+      renderFreezer();
+    }
+
+    function moveFreezerItem(category, index, delta) {
+      const items = foods.filter(function(food) { return food.location === "冷凍" && (food.category || "その他") === category; });
+      const ids = getFreezerItemOrder(category, items);
+      const target = index + delta;
+      if (target < 0 || target >= ids.length) return;
+      const temp = ids[index]; ids[index] = ids[target]; ids[target] = temp;
+      if (!freezerOrder.items || typeof freezerOrder.items !== "object") freezerOrder.items = {};
+      freezerOrder.items[category] = ids;
+      saveFreezerOrder();
+      renderFreezer();
+    }
+
+    function createFreezeSwipeFoodHtml(food) {
+      if (food.location === "冷凍") return createFoodHtml(food, true);
+      return '<div id="freezeSwipe-' + food.id + '" class="freeze-swipe-wrap" ontouchstart="startFreezeSwipe(event,' + food.id + ')" ontouchend="endFreezeSwipe(event,' + food.id + ')">' +
+        '<button class="freeze-swipe-action" type="button" onclick="openFreezeSplitModal(' + food.id + ')">❄️ 小分け<br>（冷凍）</button>' +
+        '<div class="freeze-swipe-card">' + createFoodHtml(food, true) + '</div></div>';
+    }
+
+    function startFreezeSwipe(event) {
+      const touch = event.touches && event.touches[0];
+      if (!touch) return;
+      freezeSwipeStartX = touch.clientX;
+      freezeSwipeStartY = touch.clientY;
+    }
+
+    function endFreezeSwipe(event, id) {
+      const touch = event.changedTouches && event.changedTouches[0];
+      if (!touch) return;
+      const dx = touch.clientX - freezeSwipeStartX;
+      const dy = touch.clientY - freezeSwipeStartY;
+      const wrap = document.getElementById("freezeSwipe-" + id);
+      if (!wrap || Math.abs(dy) > Math.abs(dx)) return;
+      if (dx < -45) wrap.classList.add("swiped");
+      if (dx > 35) wrap.classList.remove("swiped");
+    }
+
+    function openFreezeSplitModal(id) {
+      const food = foods.find(function(item) { return item.id === id; });
+      if (!food) return;
+      if (!["g", "kg"].includes(food.unit) || !Number.isFinite(Number(food.amount)) || Number(food.amount) <= 0) {
+        showToast("小分けはg・kgで数量登録された食材が対象です");
+        return;
+      }
+      freezeSplitFoodId = id;
+      freezeWheelDigits = [0, 0, 0];
+      document.getElementById("freezeSplitFoodName").textContent = food.name + " から冷凍する量";
+      renderFreezeWheel();
+      const modal = document.getElementById("freezeSplitModal");
+      modal.classList.add("show");
+      modal.setAttribute("aria-hidden", "false");
+    }
+
+    function closeFreezeSplitModal() {
+      freezeSplitFoodId = null;
+      const modal = document.getElementById("freezeSplitModal");
+      modal.classList.remove("show");
+      modal.setAttribute("aria-hidden", "true");
+    }
+
+    function renderFreezeWheel() {
+      const wheel = document.getElementById("freezeWheel");
+      const labels = ["100", "10", "1"];
+      wheel.innerHTML = labels.map(function(label, columnIndex) {
+        let html = '<div class="freeze-wheel-column" data-column="' + columnIndex + '" onscroll="handleFreezeWheelScroll(this,' + columnIndex + ')"><div class="freeze-wheel-spacer"></div>';
+        for (let cycle = 0; cycle < 5; cycle += 1) {
+          for (let digit = 0; digit <= 9; digit += 1) {
+            html += '<div class="freeze-wheel-option">' + digit + '</div>';
+          }
+        }
+        html += '<div class="freeze-wheel-spacer"></div></div>';
+        return html;
+      }).join('');
+      requestAnimationFrame(function() {
+        wheel.querySelectorAll('.freeze-wheel-column').forEach(function(column) {
+          column.scrollTop = 20 * 40;
+        });
+        updateFreezeWheelValue();
+      });
+    }
+
+    function handleFreezeWheelScroll(column, columnIndex) {
+      clearTimeout(column._freezeTimer);
+      column._freezeTimer = setTimeout(function() {
+        const rawIndex = Math.round(column.scrollTop / 40);
+        const digit = ((rawIndex % 10) + 10) % 10;
+        freezeWheelDigits[columnIndex] = digit;
+        const centered = 20 + digit;
+        if (Math.abs(rawIndex - centered) > 10) column.scrollTop = centered * 40;
+        updateFreezeWheelValue();
+      }, 70);
+    }
+
+    function updateFreezeWheelValue() {
+      const value = freezeWheelDigits[0] * 100 + freezeWheelDigits[1] * 10 + freezeWheelDigits[2];
+      document.getElementById("freezeWheelValue").textContent = String(value).padStart(3, "0") + "g";
+    }
+
+    function confirmFreezeSplit() {
+      const food = foods.find(function(item) { return item.id === freezeSplitFoodId; });
+      if (!food) return;
+      const grams = freezeWheelDigits[0] * 100 + freezeWheelDigits[1] * 10 + freezeWheelDigits[2];
+      if (grams < 1) {
+        showToast("1g以上を選択してください");
+        return;
+      }
+      const sourceGrams = food.unit === "kg" ? Number(food.amount) * 1000 : Number(food.amount);
+      if (grams > sourceGrams) {
+        showToast("登録数量を超える量は小分けできません");
+        return;
+      }
+
+      const sourceSnapshot = JSON.parse(JSON.stringify(food));
+      const remainingGrams = sourceGrams - grams;
+      if (food.unit === "kg") {
+        food.amount = String(Number((remainingGrams / 1000).toFixed(3)));
+      } else {
+        food.amount = String(remainingGrams);
+      }
+      food.updatedAt = new Date().toISOString();
+
+      const newId = Date.now();
+      const frozenFood = {
+        id: newId,
+        name: food.name,
+        category: food.category,
+        type: food.type || "",
+        location: "冷凍",
+        amount: String(grams),
+        unit: "g",
+        capacity: "",
+        drinkVariantLearningKey: "",
+        expiry: "",
+        purchaseDate: "",
+        note: "",
+        freezerKind: "self",
+        frozenAt: getTodayString(),
+        shopping: false,
+        buyNext: false,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      foods.push(frozenFood);
+      saveFoods();
+      closeFreezeSplitModal();
+      renderStock();
+      renderCategories();
+      renderHome();
+      renderFreezer();
+      showUndoToast(food.name + "を" + grams + "g冷凍しました", function() {
+        const index = foods.findIndex(function(item) { return item.id === sourceSnapshot.id; });
+        if (index !== -1) foods[index] = sourceSnapshot;
+        foods = foods.filter(function(item) { return item.id !== newId; });
+        saveFoods();
+        renderStock();
+        renderCategories();
+        renderHome();
+        renderFreezer();
+      });
+    }
+
 function createShoppingSeasoningHtml(item) {
     return (
       '<article class="food-item safe">' +
