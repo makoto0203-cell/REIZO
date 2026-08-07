@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta
+   name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  >
+  <meta name="theme-color" content="#edf7f5">
+  <title>REIZO｜冷蔵庫管理</title>
+  <!-- REIZO frozen-food implementation: 2026-08-05 -->
+
+  <link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+  <main class="app">
+
+    <!-- ホーム -->
+    <section id="homeScreen" class="screen active">
+      <header class="hero">
+        <h1 class="logo">REIZO</h1>
+        <p class="subtitle">冷蔵庫の食材を、期限が近い順に管理</p>
+      </header>
+
+      <div class="summary-grid">
+        <div class="summary-card">
+          <span id="totalCount" class="summary-number">0</span>
+          <span class="summary-label">登録食材</span>
+        </div>
+
+        <div class="summary-card">
+          <span id="urgentCount" class="summary-number">0</span>
+          <span class="summary-label">3日以内</span>
+        </div>
+
+        <div class="summary-card">
+          <span id="seasoningCount" class="summary-number">0</span>
+          <span class="summary-label">調味料</span>
+        </div>
+      </div>
+<div class="card home-shopping-card" role="button" tabindex="0" onclick="showShoppingList()">
+    <h2 class="section-title">
+        🛒 次回購入 <span class="section-note">→</span>
+        <span class="section-note" id="shoppingCount">0件</span>
+    </h2>
+
+</div>
+      <div class="card home-urgent-card">
+        <div class="home-urgent-header">
+          <h2 class="section-title">賞味期限が近い食材</h2>
+          <div class="home-urgent-links">
+            <span class="section-note">期限順</span>
+            <a href="#"
+              id="viewAllUrgent"
+              class="home-view-all"
+              onclick="document.getElementById('stockSort').value='expiry'; showScreen('stockScreen'); renderStock(); return false;">
+              すべて見る →
+            </a>
+          </div>
+        </div>
+        <div id="urgentList"></div>
+      </div>
+
+      <h2 class="home-shortcut-title">ショートカット</h2>
+      <div class="menu-grid">
+        <button
+          class="menu-button"
+          type="button"
+          onclick="openAddFood()"
+        >
+          <span class="menu-icon">＋</span>
+          <span class="menu-title">食材を追加</span>
+          <span class="menu-description">
+            食品名・数量・期限を登録
+          </span>
+        </button>
+
+        <button
+          class="menu-button"
+          type="button"
+          onclick="document.getElementById('stockSort').value='expiry'; showScreen('stockScreen'); renderStock();"
+        >
+          <span class="menu-icon">🧊</span>
+          <span class="menu-title">冷蔵庫の中</span>
+          <span class="menu-description">
+            在庫を期限順に確認
+          </span>
+        </button>
+
+        <button
+          class="menu-button"
+          type="button"
+          onclick="showScreen('categoryScreen')"
+        >
+          <span class="menu-icon">📂</span>
+          <span class="menu-title">カテゴリー</span>
+          <span class="menu-description">
+            肉・魚・野菜などで表示
+          </span>
+        </button>
+
+        <button
+          class="menu-button"
+          type="button"
+          onclick="showScreen('seasoningScreen')"
+        >
+          <span class="menu-icon">🧂</span>
+          <span class="menu-title">調味料</span>
+          <span class="menu-description">
+            調味料を別枠で管理
+          </span>
+        </button>
+      </div>
+
+      <p class="footer-note">
+        データはこのブラウザ内に保存されます
+      </p>
+    </section>
+
+    <!-- 食材追加・編集 -->
+    <section id="addScreen" class="screen">
+      <header class="page-header">
+        <button
+          class="back-button"
+          type="button"
+          onclick="showScreen('homeScreen')"
+          aria-label="戻る"
+        >
+          ←
+        </button>
+
+        <h2 id="foodFormTitle">食材を追加</h2>
+      </header>
+
+      <div class="card">
+        <div class="notice">
+          食材名と期限は必須です。登録内容は、このブラウザ内に保存されます。
+        </div>
+
+        <input id="editingFoodId" type="hidden">
+
+        <div class="field">
+          <label for="foodName">
+            食材名<span class="required">必須</span>
+          </label>
+
+          <input
+            id="foodName"
+            type="text"
+            maxlength="40"
+            placeholder="例：豚バラ肉"
+            autocomplete="off"
+            list="foodSuggestions"
+            oninput="autoSelectFoodCategory()"
+          >
+          <datalist id="foodSuggestions"></datalist>
+          <div id="foodAutoDetectNote" class="auto-detect-note"></div>
+          <div id="drinkVariantSuggestionArea" class="drink-variant-card" style="display:none;">
+            <div class="suggestion-label">商品・容量候補</div>
+            <div id="drinkVariantSuggestionButtons" class="suggestion-row"></div>
+            <div id="drinkCapacityDisplay" class="drink-capacity-display"></div>
+          </div>
+          <input id="foodCapacity" type="hidden">
+          <input id="drinkVariantLearningKey" type="hidden">
+        </div>
+
+        <div class="two-columns">
+          <div class="field">
+            <label for="foodCategory">カテゴリー</label>
+
+            <select id="foodCategory" onchange="handleManualCategoryChange()">
+              <option value="肉">🥩 肉</option>
+              <option value="魚">🐟 魚</option>
+              <option value="野菜">🥬 野菜</option>
+              <option value="果物">🍎 果物</option>
+              <option value="卵・乳製品">🥚 卵・乳製品</option>
+              <option value="主食">🍚 主食</option>
+              <option value="飲み物">🥤 飲み物</option>
+              <option value="冷凍食品">❄️ 冷凍食品</option>
+              <option value="加工食品">🍱 加工食品</option>
+              <option value="その他">📦 その他</option>
+            </select>
+          </div>
+          <div class="field" id="foodTypeField" style="display:none;">
+  <label for="foodType">種類</label>
+
+  <select id="foodType" onchange="handleManualTypeChange()">
+    <option value="">選択してください</option>
+    
+    
+    
+  </select>
+</div>
+
+          <div class="field">
+            <label for="foodLocation">保存場所</label>
+
+            <select id="foodLocation" onchange="handleManualLocationChange()">
+              <option value="冷蔵">冷蔵</option>
+              <option value="冷凍">冷凍</option>
+              <option value="野菜室">野菜室</option>
+              <option value="常温">常温</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="two-columns">
+          <div class="field">
+            <label for="foodAmount">数量</label>
+
+            <input
+              id="foodAmount"
+              type="number"
+              min="0"
+              step="any"
+              inputmode="decimal"
+              placeholder="例：300"
+            >
+          </div>
+
+          <div class="field">
+            <label for="foodUnit">単位</label>
+
+            <select id="foodUnit" onchange="handleManualUnitChange()">
+              <option value="g">g</option>
+              <option value="kg">kg</option>
+              <option value="個">個</option>
+              <option value="丁">丁</option>
+              <option value="本">本</option>
+              <option value="房">房</option>
+              <option value="束">束</option>
+              <option value="玉">玉</option>
+              <option value="枚">枚</option>
+              <option value="切れ">切れ</option>
+              <option value="尾">尾</option>
+              <option value="袋">袋</option>
+              <option value="パック">パック</option>
+              <option value="箱">箱</option>
+              <option value="ml">ml</option>
+              <option value="L">L</option>
+              <option value="食">食</option>
+              <option value="">単位なし</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="amountSuggestionArea" class="field" style="display:none;">
+          <div class="suggestion-label">数量候補（候補外は手入力できます）</div>
+          <div id="amountSuggestionButtons" class="suggestion-row"></div>
+        </div>
+
+        <div class="field">
+          <label for="foodExpiry">
+            賞味期限・消費期限<span class="required">必須</span>
+          </label>
+
+          <input id="foodExpiry" type="date">
+          <div class="suggestion-label">期限をすばやく入力</div>
+          <div id="expirySuggestionButtons" class="quick-date-row" aria-label="期限のクイック入力"></div>
+          <label class="learning-toggle">
+            <input id="foodLearningEnabled" type="checkbox" checked onchange="toggleFoodLearning()">
+            よく使う数量・期限・保存場所を優先する
+          </label>
+        </div>
+
+        <div class="field">
+          <label for="foodPurchaseDate">購入日</label>
+          <input id="foodPurchaseDate" type="date">
+        </div>
+
+        <div class="field">
+          <label for="foodNote">メモ</label>
+
+          <textarea
+            id="foodNote"
+            maxlength="120"
+            placeholder="例：開封済み、半分使用など"
+          ></textarea>
+        </div>
+
+        <div class="button-row">
+          <button
+            class="secondary-button"
+            type="button"
+            onclick="cancelFoodForm()"
+          >
+            キャンセル
+          </button>
+
+          <button
+            id="foodSaveButton"
+            class="primary-button"
+            type="button"
+            onclick="saveFoodFromForm()"
+          >
+            登録する
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 冷蔵庫内 -->
+    <section id="stockScreen" class="screen">
+      <header class="page-header">
+        <button
+          class="back-button"
+          type="button"
+          onclick="showScreen('homeScreen')"
+          aria-label="戻る"
+        >
+          ←
+        </button>
+
+        <h2>冷蔵庫の中</h2>
+        <div class="stock-header-actions">
+          <button class="small-button" type="button" onclick="showScreen('freezerScreen')">❄️ 冷凍庫</button>
+        </div>
+      </header>
+
+      <div class="search-area">
+        <input
+          id="stockSearch"
+          type="search"
+          placeholder="食材名を検索"
+          oninput="renderStock()"
+        >
+
+        <select id="stockSort" onchange="renderStock()">
+          <option value="expiry">期限が近い順</option>
+          <option value="newest">登録が新しい順</option>
+          <option value="name">名前順</option>
+        </select>
+      </div>
+
+      <div id="stockCategoryTabs" class="category-tabs"></div>
+      <div id="stockList"></div>
+    </section>
+
+    <!-- 冷凍庫 -->
+    <section id="freezerScreen" class="screen">
+      <header class="page-header">
+        <button class="back-button" type="button" onclick="showScreen('stockScreen')" aria-label="戻る">←</button>
+        <h2>冷凍庫</h2>
+      </header>
+
+      <div class="freezer-toolbar">
+        <input id="freezerSearch" type="search" placeholder="冷凍庫を検索" oninput="renderFreezer()">
+        <select id="freezerSort" onchange="changeFreezerSort()">
+          <option value="expiry">賞味期限順</option>
+          <option value="name">名前順</option>
+          <option value="manual">手動順</option>
+        </select>
+      </div>
+
+      <div id="freezerList"></div>
+    </section>
+
+    <!-- カテゴリー -->
+    <section id="categoryScreen" class="screen">
+      <header class="page-header">
+        <button
+          class="back-button"
+          type="button"
+          onclick="showScreen('homeScreen')"
+          aria-label="戻る"
+        >
+          ←
+        </button>
+
+        <h2>カテゴリー</h2>
+      </header>
+
+      <div id="categoryList"></div>
+    </section>
+
+    <!-- 調味料 -->
+    <section id="seasoningScreen" class="screen">
+      <header class="page-header">
+        <button
+          class="back-button"
+          type="button"
+          onclick="showScreen('homeScreen')"
+          aria-label="戻る"
+        >
+          ←
+        </button>
+
+        <h2>調味料</h2>
+      </header>
+
+      <button
+        class="primary-button"
+        type="button"
+        onclick="openAddSeasoning()"
+        style="margin-bottom: 14px;"
+      >
+        ＋ 調味料を追加
+      </button>
+
+      <div id="seasoningList"></div>
+    </section>
+<!-- 次回購入 -->
+    <section id="shoppingScreen" class="screen">
+      <header class="page-header">
+        <button
+          class="back-button"
+          type="button"
+          onclick="showScreen('homeScreen')"
+          aria-label="戻る"
+        >
+          ←
+        </button>
+
+        <h2>次回購入</h2>
+      </header>
+
+      <div id="shoppingFoodList"></div>
+    </section>
+    <!-- 調味料追加・編集 -->
+    <section id="seasoningFormScreen" class="screen">
+      <header class="page-header">
+        <button
+          class="back-button"
+          type="button"
+          onclick="showScreen('seasoningScreen')"
+          aria-label="戻る"
+        >
+          ←
+        </button>
+
+        <h2 id="seasoningFormTitle">調味料を追加</h2>
+      </header>
+
+      <div class="card">
+        <input id="editingSeasoningId" type="hidden">
+
+        <div class="field">
+          <label for="seasoningName">
+            調味料名<span class="required">必須</span>
+          </label>
+
+          <input
+            id="seasoningName"
+            type="text"
+            maxlength="40"
+            placeholder="例：しょうゆ"
+          oninput="autoSelectSeasoningType()"
+          >
+        </div>
+<div class="field">
+  <label for="seasoningType">種類</label>
+
+  <select id="seasoningType">
+    <option value="">選択してください</option>
+    <option value="基本調味料">🧂 基本調味料</option>
+    <option value="ソース">🥫 ソース</option>
+    <option value="油">🫗 油</option>
+    <option value="だし">🍲 だし</option>
+    <option value="香辛料">🌶️ 香辛料</option>
+    <option value="ドレッシング">🥗 ドレッシング</option>
+    <option value="その他">📦 その他</option>
+  </select>
+</div>
+        <div class="two-columns">
+          <div class="field">
+            <label for="seasoningAmount">残量・数量</label>
+
+            <input
+              id="seasoningAmount"
+              type="text"
+              maxlength="30"
+              placeholder="例：半分、1本"
+            >
+          </div>
+
+          <div class="field">
+            <label for="seasoningLocation">保存場所</label>
+
+            <select id="seasoningLocation">
+              <option value="冷蔵">冷蔵</option>
+              <option value="常温">常温</option>
+              <option value="冷凍">冷凍</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="seasoningExpiry">期限</label>
+          <input id="seasoningExpiry" type="date">
+        </div>
+
+        <div class="field">
+          <label for="seasoningNote">メモ</label>
+
+          <textarea
+            id="seasoningNote"
+            maxlength="120"
+            placeholder="例：開封済み、買い足し予定など"
+          ></textarea>
+        </div>
+
+        <div class="button-row">
+          <button
+            class="secondary-button"
+            type="button"
+            onclick="showScreen('seasoningScreen')"
+          >
+            キャンセル
+          </button>
+
+          <button
+            id="seasoningSaveButton"
+            class="primary-button"
+            type="button"
+            onclick="saveSeasoningFromForm()"
+          >
+            登録する
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <div id="freezeSplitModal" class="freeze-modal" aria-hidden="true">
+    <div class="freeze-modal-card" role="dialog" aria-modal="true" aria-labelledby="freezeSplitTitle">
+      <h3 id="freezeSplitTitle">❄️ 小分け（冷凍）</h3>
+      <p id="freezeSplitFoodName" class="freeze-modal-note"></p>
+      <div id="freezeWheelValue" class="freeze-wheel-value">000g</div>
+      <div id="freezeWheel" class="freeze-wheel"></div>
+      <div class="freeze-wheel-labels"><span>100の位</span><span>10の位</span><span>1の位</span></div>
+      <div class="button-row">
+        <button class="secondary-button" type="button" onclick="closeFreezeSplitModal()">キャンセル</button>
+        <button class="primary-button" type="button" onclick="confirmFreezeSplit()">冷凍する</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="./app.js"></script>
+</body>
+</html> 
