@@ -1296,7 +1296,7 @@
             type="text"
             maxlength="40"
             placeholder="例：しょうゆ"
-          oninput="autoSelectSeasoningType()"
+          oninput="updateSeasoningAutoSettings()"
           >
         </div>
 <div class="field">
@@ -1304,36 +1304,72 @@
 
   <select id="seasoningType">
     <option value="">選択してください</option>
-    <option value="基本調味料">🧂 基本調味料</option>
-    <option value="ソース">🥫 ソース</option>
-    <option value="油">🫗 油</option>
-    <option value="だし">🍲 だし</option>
-    <option value="香辛料">🌶️ 香辛料</option>
-    <option value="ドレッシング">🥗 ドレッシング</option>
-    <option value="その他">📦 その他</option>
+    <option value="基本調味料">基本調味料</option>
+    <option value="ソース">ソース</option>
+    <option value="油">油</option>
+    <option value="だし">だし</option>
+    <option value="香辛料">香辛料</option>
+    <option value="ドレッシング">ドレッシング</option>
+    <option value="その他">その他</option>
   </select>
 </div>
+        <input id="seasoningAmount" type="hidden">
+
         <div class="two-columns">
           <div class="field">
-            <label for="seasoningAmount">残量・数量</label>
-
+            <label for="seasoningCapacity">容量</label>
             <input
-              id="seasoningAmount"
-              type="text"
-              maxlength="30"
-              placeholder="例：半分、1本"
+              id="seasoningCapacity"
+              type="number"
+              min="0"
+              step="1"
+              inputmode="decimal"
+              placeholder="例：500"
+              oninput="updateSeasoningAutoSettings()"
             >
           </div>
 
           <div class="field">
-            <label for="seasoningLocation">保存場所</label>
-
-            <select id="seasoningLocation">
-              <option value="冷蔵">冷蔵</option>
-              <option value="常温">常温</option>
-              <option value="冷凍">冷凍</option>
+            <label for="seasoningCapacityUnit">容量単位</label>
+            <select id="seasoningCapacityUnit">
+              <option value="">未選択</option>
+              <option value="g">g</option>
+              <option value="ml">ml</option>
             </select>
           </div>
+        </div>
+
+        <div class="two-columns">
+          <div class="field">
+            <label for="seasoningQuantity">数量</label>
+            <input
+              id="seasoningQuantity"
+              type="number"
+              min="1"
+              step="1"
+              inputmode="numeric"
+              value="1"
+            >
+          </div>
+
+          <div class="field">
+            <label for="seasoningUnit">単位</label>
+            <select id="seasoningUnit">
+              <option value="">未選択</option>
+              <option value="本">本</option>
+              <option value="袋">袋</option>
+              <option value="個">個</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="seasoningLocation">保存場所</label>
+          <select id="seasoningLocation">
+            <option value="冷蔵">冷蔵</option>
+            <option value="常温">常温</option>
+            <option value="冷凍">冷凍</option>
+          </select>
         </div>
 
         <div class="field">
@@ -2146,6 +2182,21 @@ food.id +
       document.getElementById("seasoningAmount").value =
         seasoning.amount || "";
 
+      document.getElementById("seasoningCapacity").value =
+        seasoning.capacity || "";
+
+      document.getElementById("seasoningCapacityUnit").value =
+        seasoning.capacityUnit || "";
+
+      document.getElementById("seasoningQuantity").value =
+        seasoning.quantity || 1;
+
+      document.getElementById("seasoningUnit").value =
+        seasoning.unit || "";
+
+      document.getElementById("seasoningType").value =
+        seasoning.type || "その他";
+
       document.getElementById("seasoningLocation").value =
         seasoning.location || "常温";
 
@@ -2164,69 +2215,68 @@ food.id +
       showScreen("seasoningFormScreen");
     }
 const seasoningDatabase = {
-  // 基本調味料
-  "しょうゆ": "基本調味料",
-  "醤油": "基本調味料",
-  "塩": "基本調味料",
-  "砂糖": "基本調味料",
-  "こしょう": "基本調味料",
-  "胡椒": "基本調味料",
-  "ブラックペッパー": "基本調味料",
-  "白こしょう": "基本調味料",
+  "しょうゆ": { type: "基本調味料", unit: "本", location: "冷蔵", capacityUnit: "ml", hasCapacityCandidates: true },
+  "醤油": { type: "基本調味料", unit: "本", location: "冷蔵", capacityUnit: "ml", hasCapacityCandidates: true },
+  "塩": { type: "基本調味料", unit: "本", location: "常温", capacityUnit: "g", hasCapacityCandidates: false, saltRule: true },
+  "砂糖": { type: "基本調味料", unit: "袋", location: "常温", capacityUnit: "g", hasCapacityCandidates: false },
+  "みりん": { type: "基本調味料", unit: "本", location: "常温", capacityUnit: "ml", hasCapacityCandidates: true },
+  "料理酒": { type: "基本調味料", unit: "本", location: "常温", capacityUnit: "ml", hasCapacityCandidates: true },
+  "はちみつ": { type: "基本調味料", unit: "本", location: "常温", capacityUnit: "g", hasCapacityCandidates: false },
 
-  // ソース
-  "ケチャップ": "ソース",
-  "マヨネーズ": "ソース",
-  "中濃ソース": "ソース",
-  "ウスターソース": "ソース",
-  "とんかつソース": "ソース",
-  "オイスターソース": "ソース",
-  "焼肉のたれ": "ソース",
-  "ポン酢": "ソース",
+  "ケチャップ": { type: "ソース", unit: "本", location: "冷蔵", hasCapacityCandidates: false },
+  "マヨネーズ": { type: "ソース", unit: "本", location: "冷蔵", hasCapacityCandidates: false },
+  "中濃ソース": { type: "ソース", unit: "本", location: "冷蔵", hasCapacityCandidates: false },
+  "ウスターソース": { type: "ソース", unit: "本", location: "冷蔵", hasCapacityCandidates: false },
+  "とんかつソース": { type: "ソース", unit: "本", location: "冷蔵", hasCapacityCandidates: false },
+  "オイスターソース": { type: "ソース", unit: "本", location: "冷蔵", hasCapacityCandidates: true },
+  "焼肉のたれ": { type: "ソース", unit: "本", location: "冷蔵", hasCapacityCandidates: true },
+  "ポン酢": { type: "ソース", unit: "本", location: "冷蔵", capacityUnit: "ml", hasCapacityCandidates: true },
 
-  // 油
-  "サラダ油": "油",
-  "オリーブオイル": "油",
-  "ごま油": "油",
-  "米油": "油",
+  "サラダ油": { type: "油", unit: "本", location: "常温", capacityUnit: "ml", hasCapacityCandidates: true },
+  "ごま油": { type: "油", unit: "本", location: "常温", capacityUnit: "ml", hasCapacityCandidates: true },
+  "オリーブオイル": { type: "油", unit: "本", location: "常温", capacityUnit: "ml", hasCapacityCandidates: true },
+  "米油": { type: "油", unit: "本", location: "常温", capacityUnit: "ml", hasCapacityCandidates: true },
 
-  // だし
-  "コンソメ": "だし",
-  "鶏ガラスープ": "だし",
-  "和風だし": "だし",
-  "白だし": "だし",
-  "めんつゆ": "だし",
+  "コンソメ": { type: "だし", unit: "袋", location: "常温", hasCapacityCandidates: false },
+  "鶏ガラスープ": { type: "だし", unit: "袋", location: "常温", hasCapacityCandidates: false },
+  "だしの素": { type: "だし", unit: "袋", location: "常温", hasCapacityCandidates: false, displayType: "和風だし" },
+  "和風だし": { type: "だし", unit: "袋", location: "常温", hasCapacityCandidates: false },
+  "白だし": { type: "だし", unit: "本", location: "冷蔵", capacityUnit: "ml", hasCapacityCandidates: true },
+  "めんつゆ": { type: "だし", unit: "本", location: "冷蔵", capacityUnit: "ml", hasCapacityCandidates: true },
 
-  // 香辛料
-  "七味": "香辛料",
-  "一味": "香辛料",
-  "カレー粉": "香辛料",
-  "にんにく": "香辛料",
-  "しょうが": "香辛料",
+  "ブラックペッパー": { type: "香辛料", unit: "本", location: "常温", hasCapacityCandidates: false },
+  "白こしょう": { type: "香辛料", unit: "本", location: "常温", hasCapacityCandidates: false },
+  "塩こしょう": { type: "香辛料", unit: "本", location: "常温", hasCapacityCandidates: false },
+  "こしょう": { type: "香辛料", unit: "本", location: "常温", hasCapacityCandidates: false },
+  "胡椒": { type: "香辛料", unit: "本", location: "常温", hasCapacityCandidates: false },
+  "七味": { type: "香辛料", unit: "本", location: "常温", hasCapacityCandidates: false },
+  "一味": { type: "香辛料", unit: "本", location: "常温", hasCapacityCandidates: false },
+  "カレー粉": { type: "香辛料", unit: "本", location: "常温", hasCapacityCandidates: false },
+  "にんにくチューブ": { type: "香辛料", unit: "本", location: "冷蔵", hasCapacityCandidates: false },
+  "にんにく": { type: "香辛料", unit: "個", location: "常温", hasCapacityCandidates: false },
+  "しょうがチューブ": { type: "香辛料", unit: "本", location: "冷蔵", hasCapacityCandidates: false },
+  "しょうが": { type: "香辛料", unit: "個", location: "冷蔵", hasCapacityCandidates: false },
+  "わさび": { type: "香辛料", unit: "本", location: "冷蔵", hasCapacityCandidates: false },
+  "からし": { type: "香辛料", unit: "本", location: "冷蔵", hasCapacityCandidates: false },
 
-  // ドレッシング
-  "シーザードレッシング": "ドレッシング",
-  "ごまドレッシング": "ドレッシング",
-  "和風ドレッシング": "ドレッシング",
-  "青じそドレッシング": "ドレッシング"
+  "シーザードレッシング": { type: "ドレッシング", unit: "本", location: "冷蔵", hasCapacityCandidates: false },
+  "ごまドレッシング": { type: "ドレッシング", unit: "本", location: "冷蔵", hasCapacityCandidates: false },
+  "和風ドレッシング": { type: "ドレッシング", unit: "本", location: "冷蔵", hasCapacityCandidates: false },
+  "青じそドレッシング": { type: "ドレッシング", unit: "本", location: "冷蔵", hasCapacityCandidates: false }
 };
-function autoSelectSeasoningType() {
-  
+
+function getMatchedSeasoningSetting() {
   const seasoningName = document
     .getElementById("seasoningName")
     .value
     .replace(/\s+/g, "")
     .toLowerCase();
 
-  const seasoningType =
-    document.getElementById("seasoningType");
-
   if (!seasoningName) {
-    seasoningType.value = "";
-    return;
+    return null;
   }
 
-  const matchedSeasoning = Object.keys(seasoningDatabase)
+  const matchedName = Object.keys(seasoningDatabase)
     .sort(function(a, b) {
       return b.length - a.length;
     })
@@ -2234,9 +2284,39 @@ function autoSelectSeasoningType() {
       return seasoningName.includes(name.toLowerCase());
     });
 
-  seasoningType.value = matchedSeasoning
-    ? seasoningDatabase[matchedSeasoning]
-    : "";
+  return matchedName ? seasoningDatabase[matchedName] : null;
+}
+
+function updateSeasoningAutoSettings() {
+  const setting = getMatchedSeasoningSetting();
+  const seasoningType = document.getElementById("seasoningType");
+  const seasoningUnit = document.getElementById("seasoningUnit");
+  const seasoningLocation = document.getElementById("seasoningLocation");
+  const seasoningCapacity = document.getElementById("seasoningCapacity");
+  const seasoningCapacityUnit = document.getElementById("seasoningCapacityUnit");
+
+  if (!setting) {
+    seasoningType.value = "その他";
+    seasoningLocation.value = "常温";
+    seasoningUnit.value = "";
+    seasoningCapacityUnit.value = "";
+    return;
+  }
+
+  seasoningType.value = setting.type;
+  seasoningLocation.value = setting.location;
+  seasoningCapacityUnit.value = setting.capacityUnit || seasoningCapacityUnit.value || "";
+
+  if (setting.saltRule) {
+    const capacity = Number(seasoningCapacity.value);
+    seasoningUnit.value = capacity > 230 ? "袋" : "本";
+  } else {
+    seasoningUnit.value = setting.unit || "";
+  }
+}
+
+function autoSelectSeasoningType() {
+  updateSeasoningAutoSettings();
 }
     function saveSeasoningFromForm() {
       const editingId =
@@ -2245,8 +2325,27 @@ function autoSelectSeasoningType() {
       const name =
         document.getElementById("seasoningName").value.trim();
 
-      const amount =
+      const legacyAmount =
         document.getElementById("seasoningAmount").value.trim();
+
+      const capacity =
+        document.getElementById("seasoningCapacity").value.trim();
+
+      const capacityUnit =
+        document.getElementById("seasoningCapacityUnit").value;
+
+      const quantity =
+        document.getElementById("seasoningQuantity").value || "1";
+
+      const unit =
+        document.getElementById("seasoningUnit").value;
+
+      const type =
+        document.getElementById("seasoningType").value || "その他";
+
+      const amount = capacity
+        ? capacity + (capacityUnit || "") + " × " + quantity + (unit || "")
+        : (quantity + (unit || "") || legacyAmount);
 
       const location =
         document.getElementById("seasoningLocation").value;
@@ -2272,6 +2371,11 @@ function autoSelectSeasoningType() {
           seasonings[index] = {
             ...seasonings[index],
             name: name,
+            type: type,
+            capacity: capacity,
+            capacityUnit: capacityUnit,
+            quantity: quantity,
+            unit: unit,
             amount: amount,
             location: location,
             expiry: expiry,
@@ -2285,6 +2389,11 @@ function autoSelectSeasoningType() {
         seasonings.push({
           id: Date.now(),
           name: name,
+          type: type,
+          capacity: capacity,
+          capacityUnit: capacityUnit,
+          quantity: quantity,
+          unit: unit,
           amount: amount,
           location: location,
           expiry: expiry,
@@ -2306,6 +2415,11 @@ function autoSelectSeasoningType() {
       document.getElementById("editingSeasoningId").value = "";
       document.getElementById("seasoningName").value = "";
       document.getElementById("seasoningAmount").value = "";
+      document.getElementById("seasoningCapacity").value = "";
+      document.getElementById("seasoningCapacityUnit").value = "";
+      document.getElementById("seasoningQuantity").value = "1";
+      document.getElementById("seasoningUnit").value = "";
+      document.getElementById("seasoningType").value = "";
       document.getElementById("seasoningLocation").value = "常温";
       document.getElementById("seasoningExpiry").value = "";
       document.getElementById("seasoningNote").value = "";
@@ -2409,7 +2523,13 @@ function toggleBuyNext(id) {
             ? seasoning.expiry
             : "未入力";
 
-          const amountText = seasoning.amount || "未入力";
+          const capacityText = seasoning.capacity
+            ? seasoning.capacity + (seasoning.capacityUnit || "")
+            : "未入力";
+
+          const quantityText = seasoning.quantity
+            ? seasoning.quantity + (seasoning.unit || "")
+            : (seasoning.amount || "未入力");
 
           const noteHtml = seasoning.note
             ? '<div class="food-note">メモ：' +
@@ -2432,11 +2552,17 @@ function toggleBuyNext(id) {
             "</span>" +
             "</div>" +
             '<div class="food-info">' +
+            "種類：" +
+            escapeHtml(seasoning.type || "その他") +
+            "<br>" +
             "保存：" +
             escapeHtml(seasoning.location || "未設定") +
             "<br>" +
-            "残量・数量：" +
-            escapeHtml(amountText) +
+            "容量：" +
+            escapeHtml(capacityText) +
+            "<br>" +
+            "数量：" +
+            escapeHtml(quantityText) +
             "<br>" +
             "期限：" +
             escapeHtml(expiryText) +
@@ -4379,4 +4505,4 @@ function showShoppingList() {
     renderHome();
   </script>
 </body>
-</html>
+</html> 
