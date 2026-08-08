@@ -417,6 +417,71 @@
 
       <div id="shoppingFoodList"></div>
     </section>
+    <!-- 食材 簡易在庫編集 -->
+    <section id="quickStockEditScreen" class="screen">
+      <header class="page-header">
+        <button class="back-button" type="button" onclick="closeQuickStockEdit()" aria-label="戻る">←</button>
+        <h2>簡易在庫編集</h2>
+      </header>
+
+      <div class="card quick-stock-card">
+        <h3 id="quickStockFoodName" class="quick-stock-name"></h3>
+        <div class="quick-stock-label">現在数量</div>
+        <div class="quick-stock-quantity-row">
+          <button id="quickMinusButton" class="quantity-step-button" type="button" onclick="adjustQuickStockQuantity(-1)">−</button>
+          <div id="quickStockQuantity" class="quick-stock-quantity"></div>
+          <button id="quickPlusButton" class="quantity-step-button" type="button" onclick="adjustQuickStockQuantity(1)">＋</button>
+        </div>
+
+        <button id="quickUseUpButton" class="danger-button quick-stock-action" type="button" onclick="useUpCurrentFood()">使い切った</button>
+        <button class="primary-button quick-stock-action" type="button" onclick="openBuyMoreFromQuick()">買い足した</button>
+        <button class="secondary-button quick-stock-action" type="button" onclick="openDetailedEditFromQuick()">登録内容を修正する</button>
+      </div>
+    </section>
+
+    <!-- 食材 買い足し -->
+    <section id="buyMoreScreen" class="screen">
+      <header class="page-header">
+        <button class="back-button" type="button" onclick="cancelBuyMore()" aria-label="戻る">←</button>
+        <h2>買い足した</h2>
+      </header>
+
+      <div class="card">
+        <h3 id="buyMoreFoodName" class="quick-stock-name"></h3>
+
+        <div class="field">
+          <label>追加数量</label>
+          <div id="buyMoreAmountSuggestions" class="suggestion-row"></div>
+          <div id="buyMoreUnitLabel" class="suggestion-label"></div>
+          <button id="buyMoreCustomAmountButton" class="small-button buy-more-custom-button" type="button" onclick="showBuyMoreCustomAmount()">その他の数量を入力</button>
+          <div id="buyMoreCustomAmountArea" class="buy-more-custom-area" style="display:none;">
+            <div class="buy-more-amount-input-row">
+              <input id="buyMoreAmount" type="number" min="0" step="any" inputmode="decimal" placeholder="数量">
+              <span id="buyMoreUnit" class="buy-more-unit"></span>
+            </div>
+          </div>
+          <input id="buyMoreSelectedAmount" type="hidden">
+          <div id="buyMoreAmountError" class="inline-error"></div>
+        </div>
+
+        <div class="field">
+          <label for="buyMoreExpiry">新しく購入した分の期限</label>
+          <input id="buyMoreExpiry" type="date">
+          <div id="buyMoreExpiryError" class="inline-error"></div>
+        </div>
+
+        <div class="field buy-more-purchase-date-block">
+          <div id="buyMorePurchaseDateSummary" class="buy-more-purchase-date-summary"></div>
+          <button class="small-button" type="button" onclick="toggleBuyMorePurchaseDate()">購入日を変更</button>
+          <div id="buyMorePurchaseDateArea" style="display:none; margin-top:10px;">
+            <input id="buyMorePurchaseDate" type="date" onchange="updateBuyMorePurchaseDateSummary()">
+          </div>
+        </div>
+
+        <button class="primary-button" type="button" onclick="saveBuyMore()">追加する</button>
+      </div>
+    </section>
+
     <!-- 調味料追加・編集 -->
     <section id="seasoningFormScreen" class="screen">
       <header class="page-header">
@@ -522,6 +587,16 @@
     </section>
 
   </main>
+
+  <div id="useUpConfirmModal" class="freeze-modal" aria-hidden="true">
+    <div class="freeze-modal-card" role="dialog" aria-modal="true" aria-labelledby="useUpConfirmTitle">
+      <h3 id="useUpConfirmTitle">次回購入に追加しますか？</h3>
+      <div class="button-row">
+        <button class="secondary-button" type="button" onclick="finishUseUp(false)">追加しない</button>
+        <button class="primary-button" type="button" onclick="finishUseUp(true)">追加する</button>
+      </div>
+    </div>
+  </div>
 
   <div id="freezeSplitModal" class="freeze-modal" aria-hidden="true">
     <div class="freeze-modal-card" role="dialog" aria-modal="true" aria-labelledby="freezeSplitTitle">
