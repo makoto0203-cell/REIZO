@@ -1088,3 +1088,103 @@
       }
     }
   
+
+    /* 食材カード 簡易在庫編集・買い足し */
+    .food-item.food-card-tappable {
+      cursor: pointer;
+    }
+
+    .quick-stock-card {
+      text-align: center;
+    }
+
+    .quick-stock-name {
+      margin: 0 0 18px;
+      font-size: 22px;
+      font-weight: 900;
+      overflow-wrap: anywhere;
+    }
+
+    .quick-stock-label {
+      margin-bottom: 7px;
+      color: var(--subtext);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .quick-stock-quantity-row {
+      display: grid;
+      grid-template-columns: 64px 1fr 64px;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .quantity-step-button {
+      width: 64px;
+      height: 54px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      color: var(--main-dark);
+      background: white;
+      cursor: pointer;
+      font-size: 30px;
+      font-weight: 800;
+    }
+
+    .quantity-step-button:active {
+      background: var(--main-light);
+    }
+
+    .quick-stock-quantity {
+      min-width: 0;
+      font-size: 30px;
+      font-weight: 900;
+      overflow-wrap: anywhere;
+    }
+
+    .quick-stock-action {
+      margin-top: 10px;
+    }
+
+    .buy-more-custom-button {
+      margin-top: 9px;
+    }
+
+    .buy-more-custom-area {
+      margin-top: 10px;
+    }
+
+    .buy-more-amount-input-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .buy-more-unit {
+      min-width: 34px;
+      color: var(--text);
+      font-size: 16px;
+      font-weight: 800;
+    }
+
+    .buy-more-purchase-date-block {
+      padding: 12px 0 2px;
+      border-top: 1px solid var(--border);
+    }
+
+    .buy-more-purchase-date-summary {
+      margin-bottom: 9px;
+      color: var(--subtext);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .inline-error {
+      min-height: 18px;
+      margin-top: 6px;
+      color: var(--danger);
+      font-size: 12px;
+      font-weight: 700;
+    }
