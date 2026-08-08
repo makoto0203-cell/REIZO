@@ -25,6 +25,11 @@
     let freezeSwipeStartX = 0;
     let freezeSwipeStartY = 0;
     let freezeUndoAction = null;
+    let quickStockEditFoodId = null;
+    let quickStockEditReturnScreen = "homeScreen";
+    let buyMoreFoodId = null;
+    let buyMoreReturnScreen = "homeScreen";
+    let pendingUseUpFoodId = null;
 
     function readStorage(key) {
       try {
@@ -102,7 +107,11 @@
     }
 
     function renderHome() {
-      document.getElementById("totalCount").textContent = foods.length;
+      const stockedFoods = foods.filter(function(food) {
+        return !food.inventoryEmpty;
+      });
+
+      document.getElementById("totalCount").textContent = stockedFoods.length;
       document.getElementById("seasoningCount").textContent =
         seasonings.length;
 const shoppingFoodCount = foods.filter(function(food) {
@@ -115,7 +124,7 @@ const shoppingFoodCount = foods.filter(function(food) {
 
       document.getElementById("shoppingCount").textContent =
         shoppingFoodCount + shoppingSeasoningCount + "件";
-      const urgentFoods = sortFoodsByExpiry(foods).filter(function(food) {
+      const urgentFoods = sortFoodsByExpiry(stockedFoods).filter(function(food) {
         return getDaysLeft(food.expiry) <= 3;
       });
 
@@ -124,13 +133,13 @@ const shoppingFoodCount = foods.filter(function(food) {
 
       const urgentList = document.getElementById("urgentList");
 
-      if (foods.length === 0) {
+      if (stockedFoods.length === 0) {
         urgentList.innerHTML =
           '<div class="home-empty">まだ食材が登録されていません。<br>「食材を追加」から登録できます。</div>';
         return;
       }
 
-      const displayFoods = sortFoodsByExpiry(foods).filter(function(food) {
+      const displayFoods = sortFoodsByExpiry(stockedFoods).filter(function(food) {
         return getDaysLeft(food.expiry) <= 7;
       });
 
@@ -416,6 +425,463 @@ function toggleShoppingItem(id) {
             : "買い物リストから外しました"
     );
 }
+    function getActiveScreenId() {
+      const active = document.querySelector(".screen.active");
+      return active ? active.id : "homeScreen";
+    }
+
+    function getDateOnlyFromTimestamp(value) {
+      if (!value) return "";
+      const text = String(value);
+      return text.length >= 10 ? text.slice(0, 10) : "";
+    }
+
+    function getLotPurchaseDate(lot, food) {
+      return lot.purchaseDate ||
+        getDateOnlyFromTimestamp(lot.createdAt) ||
+        food.purchaseDate ||
+        getDateOnlyFromTimestamp(food.createdAt) ||
+        "";
+    }
+
+    function createLegacyInventoryLot(food) {
+      const amount = Number(food.amount);
+      if (!Number.isFinite(amount) || amount <= 0 || food.inventoryEmpty) {
+        return null;
+      }
+
+      return {
+        id: "legacy-" + String(food.id),
+        amount: String(amount),
+        expiry: food.expiry || "",
+        purchaseDate: food.purchaseDate || getDateOnlyFromTimestamp(food.createdAt) || "",
+        createdAt: food.createdAt || new Date().toISOString()
+      };
+    }
+
+    function getInventoryLots(food) {
+      if (Array.isArray(food.inventoryLots)) {
+        return food.inventoryLots;
+      }
+
+      const legacyLot = createLegacyInventoryLot(food);
+      return legacyLot ? [legacyLot] : [];
+    }
+
+    function materializeInventoryLots(food) {
+      if (!Array.isArray(food.inventoryLots)) {
+        food.inventoryLots = getInventoryLots(food).map(function(lot) {
+          return { ...lot };
+        });
+      }
+      return food.inventoryLots;
+    }
+
+    function sortInventoryLots(food, lots) {
+      return lots.slice().sort(function(a, b) {
+        const aExpiry = a.expiry || "";
+        const bExpiry = b.expiry || "";
+
+        if (aExpiry && !bExpiry) return -1;
+        if (!aExpiry && bExpiry) return 1;
+        if (aExpiry && bExpiry && aExpiry !== bExpiry) {
+          return aExpiry.localeCompare(bExpiry);
+        }
+
+        const aPurchase = getLotPurchaseDate(a, food) || "9999-12-31";
+        const bPurchase = getLotPurchaseDate(b, food) || "9999-12-31";
+        return aPurchase.localeCompare(bPurchase);
+      });
+    }
+
+    function formatInventoryAmount(value) {
+      const number = Number(value);
+      if (!Number.isFinite(number)) return "0";
+      if (Number.isInteger(number)) return String(number);
+      return String(Number(number.toFixed(3)));
+    }
+
+    function syncFoodSummaryFromLots(food) {
+      const lots = materializeInventoryLots(food).filter(function(lot) {
+        return Number(lot.amount) > 0;
+      });
+      food.inventoryLots = lots;
+
+      const total = lots.reduce(function(sum, lot) {
+        const amount = Number(lot.amount);
+        return sum + (Number.isFinite(amount) ? amount : 0);
+      }, 0);
+
+      if (total <= 0) {
+        food.amount = "0";
+        food.expiry = "";
+        return;
+      }
+
+      const sorted = sortInventoryLots(food, lots);
+      const activeLot = sorted[0];
+      food.amount = formatInventoryAmount(total);
+      food.expiry = activeLot ? (activeLot.expiry || "") : "";
+      food.purchaseDate = activeLot ? getLotPurchaseDate(activeLot, food) : (food.purchaseDate || "");
+      food.inventoryEmpty = false;
+    }
+
+    function refreshFoodViews() {
+      renderHome();
+      renderStockCategoryTabs();
+      renderStock();
+      renderCategories();
+      renderFreezer();
+      renderShoppingList();
+    }
+
+    function openQuickStockEdit(id) {
+      const food = foods.find(function(item) {
+        return String(item.id) === String(id);
+      });
+      if (!food) return;
+
+      const currentScreen = getActiveScreenId();
+      if (currentScreen !== "quickStockEditScreen" && currentScreen !== "buyMoreScreen") {
+        quickStockEditReturnScreen = currentScreen;
+      }
+      quickStockEditFoodId = food.id;
+      renderQuickStockEdit();
+      showScreen("quickStockEditScreen");
+    }
+
+    function closeQuickStockEdit() {
+      quickStockEditFoodId = null;
+      showScreen(quickStockEditReturnScreen || "homeScreen");
+    }
+
+    function renderQuickStockEdit() {
+      const food = foods.find(function(item) {
+        return String(item.id) === String(quickStockEditFoodId);
+      });
+      if (!food) {
+        closeQuickStockEdit();
+        return;
+      }
+
+      document.getElementById("quickStockFoodName").textContent = food.name || "";
+      document.getElementById("quickStockQuantity").textContent =
+        (food.inventoryEmpty ? "0" : formatInventoryAmount(food.amount || 0)) + String(food.unit || "");
+
+      const noInventory = Boolean(food.inventoryEmpty);
+      const useUpButton = document.getElementById("quickUseUpButton");
+      const minusButton = document.getElementById("quickMinusButton");
+      const plusButton = document.getElementById("quickPlusButton");
+      if (useUpButton) useUpButton.disabled = noInventory;
+      if (minusButton) minusButton.disabled = noInventory;
+      if (plusButton) plusButton.disabled = noInventory;
+    }
+
+    function getQuickQuantityStep(food) {
+      return food.unit === "g" ? 50 : 1;
+    }
+
+    function adjustQuickStockQuantity(direction) {
+      const food = foods.find(function(item) {
+        return String(item.id) === String(quickStockEditFoodId);
+      });
+      if (!food) return;
+
+      const step = getQuickQuantityStep(food);
+      const lots = materializeInventoryLots(food);
+
+      if (direction > 0) {
+        let sorted = sortInventoryLots(food, lots.filter(function(lot) {
+          return Number(lot.amount) > 0;
+        }));
+        let target = sorted[0];
+
+        if (!target) {
+          target = {
+            id: "adjust-" + Date.now(),
+            amount: "0",
+            expiry: food.expiry || "",
+            purchaseDate: food.purchaseDate || getDateOnlyFromTimestamp(food.createdAt) || "",
+            createdAt: new Date().toISOString()
+          };
+          lots.push(target);
+        }
+
+        target.amount = formatInventoryAmount(Number(target.amount || 0) + step);
+        food.inventoryEmpty = false;
+        syncFoodSummaryFromLots(food);
+        food.updatedAt = new Date().toISOString();
+        saveFoods();
+        refreshFoodViews();
+        renderQuickStockEdit();
+        return;
+      }
+
+      let remaining = step;
+      const sorted = sortInventoryLots(food, lots.filter(function(lot) {
+        return Number(lot.amount) > 0;
+      }));
+
+      sorted.forEach(function(lot) {
+        if (remaining <= 0) return;
+        const current = Number(lot.amount || 0);
+        if (current <= remaining) {
+          remaining -= current;
+          lot.amount = "0";
+        } else {
+          lot.amount = formatInventoryAmount(current - remaining);
+          remaining = 0;
+        }
+      });
+
+      syncFoodSummaryFromLots(food);
+
+      if (Number(food.amount) <= 0) {
+        requestUseUp(food.id);
+        return;
+      }
+
+      food.updatedAt = new Date().toISOString();
+      saveFoods();
+      refreshFoodViews();
+      renderQuickStockEdit();
+    }
+
+    function useUpCurrentFood() {
+      if (quickStockEditFoodId === null) return;
+      requestUseUp(quickStockEditFoodId);
+    }
+
+    function requestUseUp(id) {
+      const food = foods.find(function(item) {
+        return String(item.id) === String(id);
+      });
+      if (!food) return;
+
+      pendingUseUpFoodId = food.id;
+
+      if (Boolean(food.shopping || food.buyNext)) {
+        finishUseUp(true);
+        return;
+      }
+
+      const modal = document.getElementById("useUpConfirmModal");
+      modal.classList.add("show");
+      modal.setAttribute("aria-hidden", "false");
+    }
+
+    function finishUseUp(addToShopping) {
+      const food = foods.find(function(item) {
+        return String(item.id) === String(pendingUseUpFoodId);
+      });
+      if (!food) return;
+
+      const keepForShopping = Boolean(food.shopping || food.buyNext || addToShopping);
+
+      if (keepForShopping) {
+        food.shopping = true;
+        food.buyNext = true;
+        food.inventoryLots = [];
+        food.inventoryEmpty = true;
+        food.amount = "0";
+        food.expiry = "";
+        food.updatedAt = new Date().toISOString();
+      } else {
+        foods = foods.filter(function(item) {
+          return String(item.id) !== String(food.id);
+        });
+      }
+
+      pendingUseUpFoodId = null;
+      const modal = document.getElementById("useUpConfirmModal");
+      modal.classList.remove("show");
+      modal.setAttribute("aria-hidden", "true");
+      saveFoods();
+      refreshFoodViews();
+      quickStockEditFoodId = null;
+      showScreen(quickStockEditReturnScreen || "homeScreen");
+      showToast("使い切りを反映しました");
+    }
+
+    function openDetailedEditFromQuick() {
+      if (quickStockEditFoodId === null) return;
+      editFood(quickStockEditFoodId);
+    }
+
+    function getBuyMoreCandidates(food) {
+      const ids = ["foodName", "foodCategory", "foodType", "foodCapacity"];
+      const previous = {};
+
+      ids.forEach(function(id) {
+        const element = document.getElementById(id);
+        if (element) previous[id] = element.value;
+      });
+
+      document.getElementById("foodName").value = food.name || "";
+      document.getElementById("foodCategory").value = food.category || "その他";
+      document.getElementById("foodType").value = food.type || "";
+      document.getElementById("foodCapacity").value = food.capacity || "";
+
+      const candidates = getBaseAmountCandidates().filter(function(candidate) {
+        return String(candidate.unit || "") === String(food.unit || "");
+      });
+
+      ids.forEach(function(id) {
+        const element = document.getElementById(id);
+        if (element && Object.prototype.hasOwnProperty.call(previous, id)) {
+          element.value = previous[id];
+        }
+      });
+
+      return candidates;
+    }
+
+    function openBuyMoreFromQuick() {
+      const food = foods.find(function(item) {
+        return String(item.id) === String(quickStockEditFoodId);
+      });
+      if (!food) return;
+
+      buyMoreFoodId = food.id;
+      buyMoreReturnScreen = quickStockEditReturnScreen || "homeScreen";
+      resetBuyMoreForm(food);
+      showScreen("buyMoreScreen");
+    }
+
+    function resetBuyMoreForm(food) {
+      document.getElementById("buyMoreFoodName").textContent = food.name || "";
+      document.getElementById("buyMoreSelectedAmount").value = "";
+      document.getElementById("buyMoreAmount").value = "";
+      document.getElementById("buyMoreUnit").textContent = food.unit || "";
+      document.getElementById("buyMoreUnitLabel").textContent = "単位：" + String(food.unit || "単位なし");
+      document.getElementById("buyMoreExpiry").value = "";
+      document.getElementById("buyMoreAmountError").textContent = "";
+      document.getElementById("buyMoreExpiryError").textContent = "";
+      document.getElementById("buyMorePurchaseDate").value = getTodayString();
+      document.getElementById("buyMorePurchaseDateArea").style.display = "none";
+      document.getElementById("buyMoreCustomAmountArea").style.display = "none";
+
+      const candidates = getBuyMoreCandidates(food);
+      const container = document.getElementById("buyMoreAmountSuggestions");
+      container.innerHTML = candidates.map(function(candidate) {
+        return '<button class="suggestion-button" type="button" onclick="selectBuyMoreAmount(\'' +
+          escapeForAttribute(candidate.amount) + '\')">' +
+          escapeHtml(candidate.amount) + '</button>';
+      }).join("");
+
+      const customButton = document.getElementById("buyMoreCustomAmountButton");
+      if (candidates.length === 0) {
+        customButton.style.display = "none";
+        document.getElementById("buyMoreCustomAmountArea").style.display = "block";
+      } else {
+        customButton.style.display = "inline-block";
+      }
+
+      updateBuyMorePurchaseDateSummary();
+    }
+
+    function selectBuyMoreAmount(amount) {
+      document.getElementById("buyMoreSelectedAmount").value = amount;
+      document.getElementById("buyMoreAmount").value = "";
+      document.getElementById("buyMoreCustomAmountArea").style.display = "none";
+      document.getElementById("buyMoreAmountError").textContent = "";
+
+      document.querySelectorAll("#buyMoreAmountSuggestions .suggestion-button").forEach(function(button) {
+        button.classList.toggle("learned", button.textContent.trim() === String(amount));
+      });
+    }
+
+    function showBuyMoreCustomAmount() {
+      document.getElementById("buyMoreSelectedAmount").value = "";
+      document.getElementById("buyMoreCustomAmountArea").style.display = "block";
+      document.querySelectorAll("#buyMoreAmountSuggestions .suggestion-button").forEach(function(button) {
+        button.classList.remove("learned");
+      });
+      document.getElementById("buyMoreAmount").focus();
+    }
+
+    function toggleBuyMorePurchaseDate() {
+      const area = document.getElementById("buyMorePurchaseDateArea");
+      area.style.display = area.style.display === "none" ? "block" : "none";
+    }
+
+    function updateBuyMorePurchaseDateSummary() {
+      const value = document.getElementById("buyMorePurchaseDate").value || getTodayString();
+      const parts = value.split("-");
+      const display = parts.length === 3
+        ? Number(parts[1]) + "月" + Number(parts[2]) + "日"
+        : value;
+      document.getElementById("buyMorePurchaseDateSummary").textContent = "購入日：" + display;
+    }
+
+    function cancelBuyMore() {
+      buyMoreFoodId = null;
+      openQuickStockEdit(quickStockEditFoodId);
+    }
+
+    function saveBuyMore() {
+      const food = foods.find(function(item) {
+        return String(item.id) === String(buyMoreFoodId);
+      });
+      if (!food) return;
+
+      const selectedAmount = document.getElementById("buyMoreSelectedAmount").value;
+      const customAreaVisible = document.getElementById("buyMoreCustomAmountArea").style.display !== "none";
+      const customAmount = document.getElementById("buyMoreAmount").value;
+      const amountValue = selectedAmount || (customAreaVisible ? customAmount : "");
+      const amount = Number(amountValue);
+      const expiry = document.getElementById("buyMoreExpiry").value;
+      const purchaseDate = document.getElementById("buyMorePurchaseDate").value || getTodayString();
+      const amountError = document.getElementById("buyMoreAmountError");
+      const expiryError = document.getElementById("buyMoreExpiryError");
+
+      amountError.textContent = "";
+      expiryError.textContent = "";
+
+      let hasError = false;
+      if (!Number.isFinite(amount) || amount <= 0) {
+        amountError.textContent = "正しい数量を入力してください";
+        hasError = true;
+      }
+
+      if (["冷蔵", "冷凍", "野菜室"].includes(food.location) && !expiry) {
+        expiryError.textContent = "期限を入力してください";
+        hasError = true;
+      }
+
+      if (hasError) return;
+
+      const lots = materializeInventoryLots(food);
+      const matchingLot = lots.find(function(lot) {
+        return (lot.expiry || "") === (expiry || "") &&
+          getLotPurchaseDate(lot, food) === purchaseDate;
+      });
+
+      if (matchingLot) {
+        matchingLot.amount = formatInventoryAmount(Number(matchingLot.amount || 0) + amount);
+      } else {
+        lots.push({
+          id: "lot-" + Date.now(),
+          amount: formatInventoryAmount(amount),
+          expiry: expiry || "",
+          purchaseDate: purchaseDate,
+          createdAt: new Date().toISOString()
+        });
+      }
+
+      food.inventoryEmpty = false;
+      food.shopping = false;
+      food.buyNext = false;
+      syncFoodSummaryFromLots(food);
+      food.updatedAt = new Date().toISOString();
+      saveFoods();
+      refreshFoodViews();
+      buyMoreFoodId = null;
+      quickStockEditFoodId = null;
+      showScreen(buyMoreReturnScreen || "homeScreen");
+      showToast("買い足しを反映しました");
+    }
+
     function renderStockCategoryTabs() {
       const container =
         document.getElementById("stockCategoryTabs");
@@ -423,7 +889,7 @@ function toggleShoppingItem(id) {
       const categories = [
         "すべて",
         ...new Set(
-          foods.map(function(food) {
+          foods.filter(function(food) { return !food.inventoryEmpty; }).map(function(food) {
             return food.category || "その他";
           })
         )
@@ -471,6 +937,7 @@ function toggleShoppingItem(id) {
         : "expiry";
 
       let filteredFoods = foods.filter(function(food) {
+        if (food.inventoryEmpty) return false;
         const categoryMatches =
           selectedStockCategory === "すべて" ||
           food.category === selectedStockCategory;
@@ -503,7 +970,7 @@ function toggleShoppingItem(id) {
 
       if (filteredFoods.length === 0) {
         stockList.innerHTML = createEmptyHtml(
-          foods.length === 0
+          foods.filter(function(food) { return !food.inventoryEmpty; }).length === 0
             ? "まだ食材が登録されていません。"
             : "条件に一致する食材がありません。"
         );
@@ -525,7 +992,9 @@ function toggleShoppingItem(id) {
       const categoryList =
         document.getElementById("categoryList");
 
-      if (foods.length === 0) {
+      const stockedFoods = foods.filter(function(food) { return !food.inventoryEmpty; });
+
+      if (stockedFoods.length === 0) {
         categoryList.innerHTML = createEmptyHtml(
           "食材を登録すると、カテゴリー別に表示されます。"
         );
@@ -534,7 +1003,7 @@ function toggleShoppingItem(id) {
 
       const categoryMap = {};
 
-      sortFoodsByExpiry(foods).forEach(function(food) {
+      sortFoodsByExpiry(stockedFoods).forEach(function(food) {
         const category = food.category || "その他";
 
         if (!categoryMap[category]) {
@@ -586,7 +1055,7 @@ function toggleShoppingItem(id) {
       }
 
       return (
-        '<button class="home-urgent-row" type="button" onclick="editFood(' +
+        '<button class="home-urgent-row" type="button" onclick="openQuickStockEdit(' +
         food.id +
         ')">' +
         '<span class="home-urgent-main">' +
@@ -613,10 +1082,13 @@ function toggleShoppingItem(id) {
     }
 
     function createFoodHtml(food, showActions, showCartOnly) {
-      const daysLeft = getDaysLeft(food.expiry);
-      const status = getFoodStatus(daysLeft);
-      const amountText = createAmountText(food);
-      const purchaseText = food.purchaseDate
+      const isShoppingOnly = Boolean(food.inventoryEmpty);
+      const daysLeft = isShoppingOnly ? null : getDaysLeft(food.expiry);
+      const status = isShoppingOnly
+        ? { className: "safe", text: "次回購入" }
+        : getFoodStatus(daysLeft);
+      const amountText = isShoppingOnly ? "0" + String(food.unit || "") : createAmountText(food);
+      const purchaseText = !isShoppingOnly && food.purchaseDate
         ? "購入日：" + escapeHtml(food.purchaseDate)
         : "";
 
@@ -626,30 +1098,22 @@ function toggleShoppingItem(id) {
           "</div>"
         : "";
 
-      const actionHtml = showActions
-  ? '<div class="item-actions">' +
-    '<button class="small-button" type="button" onclick="editFood(' +
-    food.id +
-    ')">編集</button>' +
-    '<button class="small-button" type="button" onclick="toggleShoppingItem(' +
-food.id +
-')">' + (Boolean(food.shopping || food.buyNext) ? '✅🛒' : '🛒') + '</button>' +
-    '<button class="small-button delete" type="button" onclick="deleteFood(' +
-    food.id +
-    ')">削除</button>' +
-    "</div>"
-  : showCartOnly
-  ? '<div class="item-actions">' +
-    '<button class="small-button" type="button" onclick="toggleShoppingItem(' +
-    food.id +
-    ')">' + (Boolean(food.shopping || food.buyNext) ? '✅🛒' : '🛒') + '</button>' +
-    "</div>"
-  : "";
+      const cartButton = '<button class="small-button" type="button" onclick="event.stopPropagation(); toggleShoppingItem(' +
+        food.id +
+        ')">' + (Boolean(food.shopping || food.buyNext) ? '✅🛒' : '🛒') + '</button>';
+
+      const actionHtml = showActions || showCartOnly
+        ? '<div class="item-actions" onclick="event.stopPropagation()">' + cartButton + '</div>'
+        : "";
+
+      const dateHtml = isShoppingOnly
+        ? ""
+        : "<br>期限：" + escapeHtml(food.expiry || "");
 
       return (
-        '<article class="food-item ' +
+        '<article class="food-item food-card-tappable ' +
         status.className +
-        '">' +
+        '" role="button" tabindex="0" onclick="openQuickStockEdit(' + food.id + ')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();openQuickStockEdit(' + food.id + ');}">' +
         '<div class="food-heading">' +
         '<h3 class="food-name">' +
         escapeHtml(food.name) +
@@ -669,9 +1133,7 @@ food.id +
         "数量：" +
         escapeHtml(amountText) +
         (food.capacity ? "<br>容量：" + escapeHtml(food.capacity) : "") +
-        "<br>" +
-        "期限：" +
-        escapeHtml(food.expiry) +
+        dateHtml +
         (purchaseText ? "<br>" + purchaseText : "") +
         "</div>" +
         noteHtml +
@@ -3039,7 +3501,7 @@ function populateFoodSuggestions() {
       const search = document.getElementById("freezerSearch");
       const searchText = search ? search.value.trim().toLowerCase() : "";
       const frozenFoods = foods.filter(function(food) {
-        return food.location === "冷凍" && (!searchText || String(food.name || "").toLowerCase().includes(searchText));
+        return !food.inventoryEmpty && food.location === "冷凍" && (!searchText || String(food.name || "").toLowerCase().includes(searchText));
       });
 
       if (frozenFoods.length === 0) {
@@ -3100,23 +3562,23 @@ function populateFoodSuggestions() {
         : '賞味期限：' + escapeHtml(food.expiry || "未入力");
       const status = selfFrozen ? { className: "safe", text: "自家冷凍" } : getFoodStatus(getDaysLeft(food.expiry));
       const orderActions = freezerSort === "manual"
-        ? '<div class="freezer-manual-actions">' +
-          '<button class="freezer-order-button" type="button" onclick="moveFreezerItem(\'' + escapeForAttribute(category) + '\',' + itemIndex + ',-1)">↑</button>' +
-          '<button class="freezer-order-button" type="button" onclick="moveFreezerItem(\'' + escapeForAttribute(category) + '\',' + itemIndex + ',1)">↓</button>' +
+        ? '<div class="freezer-manual-actions" onclick="event.stopPropagation()">' +
+          '<button class="freezer-order-button" type="button" onclick="event.stopPropagation(); moveFreezerItem(\'' + escapeForAttribute(category) + '\',' + itemIndex + ',-1)">↑</button>' +
+          '<button class="freezer-order-button" type="button" onclick="event.stopPropagation(); moveFreezerItem(\'' + escapeForAttribute(category) + '\',' + itemIndex + ',1)">↓</button>' +
           '</div>'
-        : '';
+        : '<div class="item-actions" onclick="event.stopPropagation()"><button class="small-button" type="button" onclick="event.stopPropagation(); toggleShoppingItem(' + food.id + ')">' + (Boolean(food.shopping || food.buyNext) ? '✅🛒' : '🛒') + '</button></div>';
       return '<div class="freezer-item-wrap">' +
-        '<article class="food-item ' + status.className + '">' +
+        '<article class="food-item food-card-tappable ' + status.className + '" role="button" tabindex="0" onclick="openQuickStockEdit(' + food.id + ')">' +
         '<div class="food-heading"><h3 class="food-name">' + escapeHtml(food.name) + '</h3>' +
         '<span class="status-badge ' + status.className + '">' + escapeHtml(status.text) + '</span></div>' +
         '<div class="freezer-item-meta"><span class="freezer-kind-badge">' + (selfFrozen ? '自家冷凍' : '市販冷凍') + '</span>' +
         escapeHtml(createAmountText(food)) + '<br>' + dateLabel + '</div>' +
-        (freezerSort === "manual" ? orderActions : '<div class="item-actions"><button class="small-button" type="button" onclick="editFood(' + food.id + ')">編集</button><button class="small-button" type="button" onclick="toggleShoppingItem(' + food.id + ')">' + (Boolean(food.shopping || food.buyNext) ? '✅🛒' : '🛒') + '</button></div>') +
+        orderActions +
         '</article></div>';
     }
 
     function moveFreezerCategory(index, delta) {
-      const frozenFoods = foods.filter(function(food) { return food.location === "冷凍"; });
+      const frozenFoods = foods.filter(function(food) { return !food.inventoryEmpty && food.location === "冷凍"; });
       const categories = getFreezerCategoryOrder(Array.from(new Set(frozenFoods.map(function(food) { return food.category || "その他"; }))));
       const target = index + delta;
       if (target < 0 || target >= categories.length) return;
@@ -3127,7 +3589,7 @@ function populateFoodSuggestions() {
     }
 
     function moveFreezerItem(category, index, delta) {
-      const items = foods.filter(function(food) { return food.location === "冷凍" && (food.category || "その他") === category; });
+      const items = foods.filter(function(food) { return !food.inventoryEmpty && food.location === "冷凍" && (food.category || "その他") === category; });
       const ids = getFreezerItemOrder(category, items);
       const target = index + delta;
       if (target < 0 || target >= ids.length) return;
@@ -3141,7 +3603,7 @@ function populateFoodSuggestions() {
     function createFreezeSwipeFoodHtml(food) {
       if (food.location === "冷凍") return createFoodHtml(food, true);
       return '<div id="freezeSwipe-' + food.id + '" class="freeze-swipe-wrap" ontouchstart="startFreezeSwipe(event,' + food.id + ')" ontouchend="endFreezeSwipe(event,' + food.id + ')">' +
-        '<button class="freeze-swipe-action" type="button" onclick="openFreezeSplitModal(' + food.id + ')">❄️ 小分け<br>（冷凍）</button>' +
+        '<button class="freeze-swipe-action" type="button" onclick="event.stopPropagation(); openFreezeSplitModal(' + food.id + ')">❄️ 小分け<br>（冷凍）</button>' +
         '<div class="freeze-swipe-card">' + createFoodHtml(food, true) + '</div></div>';
     }
 
