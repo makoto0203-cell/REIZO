@@ -1188,3 +1188,334 @@
       font-size: 12px;
       font-weight: 700;
     }
+
+
+    /* 再登録：詳細画面ベースのシンプルUI */
+    .past-items-link {
+      margin-top: 14px;
+    }
+
+    .re-register-screen {
+      padding-bottom: calc(112px + env(safe-area-inset-bottom));
+    }
+
+    .re-register-header {
+      display: grid;
+      grid-template-columns: 48px minmax(0, 1fr) 48px;
+      align-items: center;
+      min-height: 66px;
+      margin: 0 -14px 18px;
+      padding: 0 10px;
+      border-bottom: 1px solid rgba(31, 41, 39, 0.07);
+      background: rgba(255, 255, 255, 0.9);
+    }
+
+    .re-register-header h2 {
+      margin: 0;
+      overflow: hidden;
+      font-size: 23px;
+      font-weight: 900;
+      text-align: center;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .re-register-back {
+      width: 44px;
+      height: 44px;
+      border: 0;
+      color: var(--text);
+      background: transparent;
+      cursor: pointer;
+      font-size: 38px;
+      font-weight: 400;
+      line-height: 1;
+    }
+
+    .re-register-header-spacer {
+      display: block;
+      width: 44px;
+      height: 44px;
+    }
+
+    .re-register-main-card,
+    .re-register-memo-card {
+      margin-bottom: 16px;
+      padding: 24px 20px;
+      border: 1px solid rgba(25, 121, 107, 0.06);
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.96);
+      box-shadow: 0 9px 28px rgba(24, 67, 59, 0.08);
+    }
+
+    .re-register-main-card {
+      padding-top: 28px;
+      text-align: center;
+    }
+
+    .re-register-food-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 132px;
+      height: 132px;
+      margin: 0 auto 18px;
+      border-radius: 50%;
+      background: #f7f9f8;
+      font-size: 72px;
+      line-height: 1;
+    }
+
+    .re-register-food-name {
+      margin: 0;
+      font-size: 29px;
+      font-weight: 900;
+      overflow-wrap: anywhere;
+    }
+
+    .re-register-location-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 10px;
+      padding: 7px 12px;
+      border-radius: 12px;
+      color: var(--main-dark);
+      background: rgba(25, 121, 107, 0.08);
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .re-register-divider {
+      height: 1px;
+      margin: 24px 0 4px;
+      background: var(--border);
+    }
+
+    .re-register-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      width: 100%;
+      min-height: 68px;
+      margin: 0;
+      padding: 10px 4px;
+      border: 0;
+      border-bottom: 1px solid #edf1ef;
+      color: var(--text);
+      background: transparent;
+      text-align: left;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .re-register-row:last-child {
+      border-bottom: 0;
+    }
+
+    .re-register-row input[type="date"] {
+      width: auto;
+      max-width: 66%;
+      padding: 8px 0;
+      border: 0;
+      border-radius: 0;
+      color: var(--text);
+      background: transparent;
+      box-shadow: none;
+      font-size: 18px;
+      font-weight: 800;
+      text-align: right;
+    }
+
+    .re-register-row input[type="date"]:focus {
+      border: 0;
+      box-shadow: none;
+    }
+
+    .re-register-egg-row {
+      cursor: pointer;
+    }
+
+    .re-register-row-value {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 18px;
+      font-weight: 900;
+    }
+
+    .re-register-chevron {
+      color: #6f7775;
+      font-size: 30px;
+      font-weight: 400;
+      line-height: 1;
+    }
+
+    .re-register-memo-card h3 {
+      margin: 0 0 14px;
+      font-size: 20px;
+      font-weight: 900;
+    }
+
+    .re-register-memo-card textarea {
+      min-height: 112px;
+      border-color: #e5e9e8;
+      background: #fbfcfc;
+    }
+
+    .re-register-memo-card p {
+      margin: 10px 0 0;
+      color: var(--subtext);
+      font-size: 12px;
+    }
+
+    .re-register-fixed-action {
+      position: fixed;
+      z-index: 80;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      padding:
+        12px
+        20px
+        calc(14px + env(safe-area-inset-bottom));
+      background: linear-gradient(to top, rgba(244, 248, 247, 1) 74%, rgba(244, 248, 247, 0));
+    }
+
+    .re-register-submit {
+      display: block;
+      width: min(calc(100% - 28px), 532px);
+      min-height: 56px;
+      margin: 0 auto;
+      border: 2px solid var(--main);
+      border-radius: 999px;
+      color: var(--main-dark);
+      background: white;
+      cursor: pointer;
+      font-size: 18px;
+      font-weight: 900;
+    }
+
+    .re-register-submit:active {
+      background: var(--main-light);
+    }
+
+    .egg-count-sheet {
+      position: fixed;
+      z-index: 420;
+      inset: 0;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      background: rgba(18, 24, 23, 0.18);
+    }
+
+    .egg-count-sheet.show {
+      display: flex;
+    }
+
+    .egg-count-sheet-card {
+      width: min(100%, 560px);
+      padding:
+        10px
+        22px
+        calc(24px + env(safe-area-inset-bottom));
+      border-radius: 28px 28px 0 0;
+      background: white;
+      box-shadow: 0 -12px 34px rgba(0, 0, 0, 0.14);
+    }
+
+    .egg-count-sheet-handle {
+      width: 54px;
+      height: 5px;
+      margin: 0 auto 16px;
+      border-radius: 999px;
+      background: #cfd5d3;
+    }
+
+    .egg-count-sheet-header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .egg-count-sheet-header h3 {
+      margin: 0;
+      font-size: 21px;
+      font-weight: 900;
+      text-align: center;
+      transform: translateX(28px);
+    }
+
+    .egg-count-sheet-header button {
+      padding: 8px 0 8px 12px;
+      border: 0;
+      color: var(--main);
+      background: transparent;
+      cursor: pointer;
+      font-size: 17px;
+      font-weight: 900;
+    }
+
+    .egg-count-options {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .egg-count-option {
+      min-width: 72px;
+      padding: 12px 17px;
+      border: 1px solid #dce2e0;
+      border-radius: 999px;
+      color: var(--text);
+      background: white;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 800;
+    }
+
+    .egg-count-option.selected {
+      border: 2px solid var(--main);
+      color: var(--main-dark);
+      background: var(--main-light);
+    }
+
+    .egg-count-sheet-card > p {
+      margin: 20px 0 0;
+      color: var(--subtext);
+      font-size: 12px;
+      text-align: center;
+    }
+
+    @media (max-width: 390px) {
+      .re-register-main-card,
+      .re-register-memo-card {
+        padding-right: 16px;
+        padding-left: 16px;
+      }
+
+      .re-register-food-icon {
+        width: 112px;
+        height: 112px;
+        font-size: 60px;
+      }
+
+      .re-register-food-name {
+        font-size: 25px;
+      }
+
+      .re-register-row input[type="date"] {
+        max-width: 72%;
+        font-size: 16px;
+      }
+
+      .egg-count-option {
+        min-width: 66px;
+        padding: 11px 14px;
+      }
+    }
