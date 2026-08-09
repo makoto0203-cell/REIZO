@@ -41,7 +41,7 @@
       </div>
 <div class="card home-shopping-card" role="button" tabindex="0" onclick="showShoppingList()">
     <h2 class="section-title">
-        🛒 次回購入 <span class="section-note">→</span>
+        🛒 買い物リスト <span class="section-note">→</span>
         <span class="section-note" id="shoppingCount">0件</span>
     </h2>
 
@@ -412,11 +412,64 @@
           ←
         </button>
 
-        <h2>次回購入</h2>
+        <h2>買い物リスト</h2>
       </header>
 
       <div id="shoppingFoodList"></div>
+      <button class="secondary-button past-items-link" type="button" onclick="showPastItems()">過去に登録したもの</button>
     </section>
+
+    <!-- 過去に登録したもの -->
+    <section id="pastItemsScreen" class="screen">
+      <header class="page-header">
+        <button class="back-button" type="button" onclick="showScreen('shoppingScreen')" aria-label="戻る">←</button>
+        <h2>過去に登録したもの</h2>
+      </header>
+      <div id="pastItemsList"></div>
+    </section>
+
+    <!-- 再登録 -->
+    <section id="reRegisterScreen" class="screen re-register-screen">
+      <header class="re-register-header">
+        <button class="re-register-back" type="button" onclick="cancelReRegister()" aria-label="戻る">‹</button>
+        <h2 id="reRegisterHeaderName"></h2>
+        <span class="re-register-header-spacer" aria-hidden="true"></span>
+      </header>
+
+      <div class="re-register-main-card">
+        <div id="reRegisterFoodIcon" class="re-register-food-icon"></div>
+        <h3 id="reRegisterFoodName" class="re-register-food-name"></h3>
+        <div id="reRegisterLocationBadge" class="re-register-location-badge"></div>
+
+        <div class="re-register-divider"></div>
+
+        <label class="re-register-row" for="reRegisterPurchaseDate">
+          <span>購入日</span>
+          <input id="reRegisterPurchaseDate" type="date">
+        </label>
+
+        <label class="re-register-row" for="reRegisterExpiry">
+          <span>期限</span>
+          <input id="reRegisterExpiry" type="date">
+        </label>
+
+        <button id="reRegisterEggCountRow" class="re-register-row re-register-egg-row" type="button" onclick="openEggCountSheet()" style="display:none;">
+          <span>残り個数</span>
+          <span class="re-register-row-value"><span id="reRegisterEggCountText">未選択</span><span class="re-register-chevron">›</span></span>
+        </button>
+      </div>
+
+      <div class="re-register-memo-card">
+        <h3>メモ</h3>
+        <textarea id="reRegisterNote" maxlength="120" placeholder="メモを入力（任意）"></textarea>
+        <p>メモはご自由にお使いください。</p>
+      </div>
+
+      <div class="re-register-fixed-action">
+        <button class="re-register-submit" type="button" onclick="saveReRegister()">登録する</button>
+      </div>
+    </section>
+
     <!-- 食材 簡易在庫編集 -->
     <section id="quickStockEditScreen" class="screen">
       <header class="page-header">
@@ -609,6 +662,18 @@
         <button class="secondary-button" type="button" onclick="closeFreezeSplitModal()">キャンセル</button>
         <button class="primary-button" type="button" onclick="confirmFreezeSplit()">冷凍する</button>
       </div>
+    </div>
+  </div>
+
+  <div id="eggCountSheet" class="egg-count-sheet" aria-hidden="true">
+    <div class="egg-count-sheet-card" role="dialog" aria-modal="true" aria-labelledby="eggCountSheetTitle">
+      <div class="egg-count-sheet-handle"></div>
+      <div class="egg-count-sheet-header">
+        <h3 id="eggCountSheetTitle">残り個数を選択</h3>
+        <button type="button" onclick="closeEggCountSheet()">完了</button>
+      </div>
+      <div id="eggCountOptions" class="egg-count-options"></div>
+      <p>残っている個数を選択してください。</p>
     </div>
   </div>
 
