@@ -30,6 +30,10 @@
     let buyMoreFoodId = null;
     let buyMoreReturnScreen = "homeScreen";
     let pendingUseUpFoodId = null;
+    let reRegisterFoodId = null;
+    let reRegisterSource = "past";
+    let reRegisterReturnScreen = "pastItemsScreen";
+    let reRegisterEggCount = "";
 
     function readStorage(key) {
       try {
@@ -93,6 +97,10 @@
 
       if (screenId === "shoppingScreen") {
         renderShoppingList();
+      }
+
+      if (screenId === "pastItemsScreen") {
+        renderPastItems();
       }
 
       if (screenId === "freezerScreen") {
@@ -418,6 +426,7 @@ function toggleShoppingItem(id) {
     renderStock();
     renderCategories();
     renderShoppingList();
+    renderPastItems();
 
     showToast(
         nextState
@@ -533,6 +542,7 @@ function toggleShoppingItem(id) {
       renderCategories();
       renderFreezer();
       renderShoppingList();
+      renderPastItems();
     }
 
     function openQuickStockEdit(id) {
@@ -678,19 +688,13 @@ function toggleShoppingItem(id) {
 
       const keepForShopping = Boolean(food.shopping || food.buyNext || addToShopping);
 
-      if (keepForShopping) {
-        food.shopping = true;
-        food.buyNext = true;
-        food.inventoryLots = [];
-        food.inventoryEmpty = true;
-        food.amount = "0";
-        food.expiry = "";
-        food.updatedAt = new Date().toISOString();
-      } else {
-        foods = foods.filter(function(item) {
-          return String(item.id) !== String(food.id);
-        });
-      }
+      food.shopping = keepForShopping;
+      food.buyNext = keepForShopping;
+      food.inventoryLots = [];
+      food.inventoryEmpty = true;
+      food.amount = "0";
+      food.expiry = "";
+      food.updatedAt = new Date().toISOString();
 
       pendingUseUpFoodId = null;
       const modal = document.getElementById("useUpConfirmModal");
@@ -1083,10 +1087,12 @@ function toggleShoppingItem(id) {
 
     function createFoodHtml(food, showActions, showCartOnly) {
       const isShoppingOnly = Boolean(food.inventoryEmpty);
-      const daysLeft = isShoppingOnly ? null : getDaysLeft(food.expiry);
+      const daysLeft = isShoppingOnly || !food.expiry ? null : getDaysLeft(food.expiry);
       const status = isShoppingOnly
-        ? { className: "safe", text: "次回購入" }
-        : getFoodStatus(daysLeft);
+        ? { className: "safe", text: "買い物リスト" }
+        : !food.expiry
+          ? { className: "safe", text: "期限未入力" }
+          : getFoodStatus(daysLeft);
       const amountText = isShoppingOnly ? "0" + String(food.unit || "") : createAmountText(food);
       const purchaseText = !isShoppingOnly && food.purchaseDate
         ? "購入日：" + escapeHtml(food.purchaseDate)
@@ -1106,9 +1112,9 @@ function toggleShoppingItem(id) {
         ? '<div class="item-actions" onclick="event.stopPropagation()">' + cartButton + '</div>'
         : "";
 
-      const dateHtml = isShoppingOnly
+      const dateHtml = isShoppingOnly || !food.expiry
         ? ""
-        : "<br>期限：" + escapeHtml(food.expiry || "");
+        : "<br>期限：" + escapeHtml(food.expiry);
 
       return (
         '<article class="food-item food-card-tappable ' +
@@ -3560,7 +3566,11 @@ function populateFoodSuggestions() {
       const dateLabel = selfFrozen
         ? '冷凍した日：' + escapeHtml(getFrozenDate(food) || "未設定")
         : '賞味期限：' + escapeHtml(food.expiry || "未入力");
-      const status = selfFrozen ? { className: "safe", text: "自家冷凍" } : getFoodStatus(getDaysLeft(food.expiry));
+      const status = selfFrozen
+        ? { className: "safe", text: "自家冷凍" }
+        : food.expiry
+          ? getFoodStatus(getDaysLeft(food.expiry))
+          : { className: "safe", text: "期限未入力" };
       const orderActions = freezerSort === "manual"
         ? '<div class="freezer-manual-actions" onclick="event.stopPropagation()">' +
           '<button class="freezer-order-button" type="button" onclick="event.stopPropagation(); moveFreezerItem(\'' + escapeForAttribute(category) + '\',' + itemIndex + ',-1)">↑</button>' +
@@ -3765,6 +3775,23 @@ function createShoppingSeasoningHtml(item) {
     );
 }
 
+function createShoppingFoodHtml(food) {
+    const locationText = getReRegisterLocationLabel(food);
+    return (
+      '<article class="food-item safe">' +
+      '<div class="food-heading">' +
+      '<h3 class="food-name">' + escapeHtml(food.name || "") + '</h3>' +
+      '<span class="status-badge safe">買い物</span>' +
+      '</div>' +
+      '<div class="food-info">' + escapeHtml(locationText) + '</div>' +
+      '<div class="item-actions">' +
+      '<button class="small-button" type="button" onclick="openReRegister(' + food.id + ',\'shopping\')">買った</button>' +
+      '<button class="small-button" type="button" onclick="toggleShoppingItem(' + food.id + ')">✅🛒</button>' +
+      '</div>' +
+      '</article>'
+    );
+}
+
 function renderShoppingList() {
     const shoppingList = document.getElementById("shoppingFoodList");
     if (!shoppingList) return;
@@ -3778,7 +3805,7 @@ function renderShoppingList() {
     });
 
     if (shoppingFoods.length === 0 && shoppingSeasonings.length === 0) {
-        shoppingList.innerHTML = createEmptyHtml("次回購入はありません。");
+        shoppingList.innerHTML = createEmptyHtml("買い物リストは空です。");
         return;
     }
 
@@ -3786,9 +3813,7 @@ function renderShoppingList() {
 
     if (shoppingFoods.length > 0) {
       html += '<section class="category-block"><div class="category-heading"><h3>食材・飲み物</h3><span class="category-count">' + shoppingFoods.length + '件</span></div>';
-      html += shoppingFoods.map(function(food) {
-        return createFoodHtml(food, false, true);
-      }).join("");
+      html += shoppingFoods.map(createShoppingFoodHtml).join("");
       html += '</section>';
     }
 
@@ -3803,7 +3828,187 @@ function renderShoppingList() {
 
 function showShoppingList() {
     showScreen("shoppingScreen");
+}
 
+function showPastItems() {
+    showScreen("pastItemsScreen");
+}
+
+function renderPastItems() {
+    const container = document.getElementById("pastItemsList");
+    if (!container) return;
+
+    const pastFoods = foods.filter(function(food) {
+      return Boolean(food.inventoryEmpty);
+    }).slice().sort(function(a, b) {
+      return String(a.name || "").localeCompare(String(b.name || ""), "ja");
+    });
+
+    if (pastFoods.length === 0) {
+      container.innerHTML = createEmptyHtml("過去に登録したものはありません。");
+      return;
+    }
+
+    container.innerHTML = pastFoods.map(function(food) {
+      const inShopping = Boolean(food.shopping || food.buyNext);
+      return (
+        '<article class="food-item safe past-item-card">' +
+        '<div class="food-heading">' +
+        '<h3 class="food-name">' + escapeHtml(food.name || "") + '</h3>' +
+        '<span class="status-badge safe">過去</span>' +
+        '</div>' +
+        '<div class="food-info">' + escapeHtml(getReRegisterLocationLabel(food)) + '</div>' +
+        '<div class="item-actions">' +
+        '<button class="small-button" type="button" onclick="openReRegister(' + food.id + ',\'past\')">再登録</button>' +
+        '<button class="small-button" type="button" onclick="toggleShoppingItem(' + food.id + ')">' + (inShopping ? '✅🛒' : '🛒') + '</button>' +
+        '</div>' +
+        '</article>'
+      );
+    }).join("");
+}
+
+function isEggFood(food) {
+    const name = String(food && food.name || "").replace(/\s+/g, "");
+    return /たまご|卵|玉子/.test(name);
+}
+
+function getReRegisterFoodIcon(food) {
+    if (isEggFood(food)) return "🥚";
+    const icons = {
+      "肉": "🥩",
+      "魚": "🐟",
+      "野菜": "🥬",
+      "果物": "🍎",
+      "卵・乳製品": "🥛",
+      "主食": "🍚",
+      "飲み物": "🥤",
+      "冷凍食品": "❄️",
+      "加工食品": "🍱",
+      "その他": "📦"
+    };
+    return icons[food.category] || "📦";
+}
+
+function getReRegisterLocationLabel(food) {
+    const location = String(food && food.location || "");
+    if (location === "冷蔵") return "🧊 冷蔵庫";
+    if (location === "冷凍") return "❄️ 冷凍庫";
+    if (location === "野菜室") return "🥬 野菜室";
+    if (location === "常温") return "🏠 常温";
+    return "📦 保存場所未設定";
+}
+
+function openReRegister(id, source) {
+    const food = foods.find(function(item) {
+      return String(item.id) === String(id);
+    });
+    if (!food) return;
+
+    reRegisterFoodId = food.id;
+    reRegisterSource = source === "shopping" ? "shopping" : "past";
+    reRegisterReturnScreen = reRegisterSource === "shopping" ? "shoppingScreen" : "pastItemsScreen";
+    reRegisterEggCount = "";
+
+    document.getElementById("reRegisterHeaderName").textContent = food.name || "";
+    document.getElementById("reRegisterFoodName").textContent = food.name || "";
+    document.getElementById("reRegisterFoodIcon").textContent = getReRegisterFoodIcon(food);
+    document.getElementById("reRegisterLocationBadge").textContent = getReRegisterLocationLabel(food);
+    document.getElementById("reRegisterPurchaseDate").value =
+      reRegisterSource === "shopping" ? getTodayString() : "";
+    document.getElementById("reRegisterExpiry").value = "";
+    document.getElementById("reRegisterNote").value = "";
+    document.getElementById("reRegisterEggCountText").textContent = "未選択";
+
+    const eggRow = document.getElementById("reRegisterEggCountRow");
+    eggRow.style.display = isEggFood(food) ? "flex" : "none";
+
+    showScreen("reRegisterScreen");
+}
+
+function cancelReRegister() {
+    closeEggCountSheet();
+    reRegisterFoodId = null;
+    showScreen(reRegisterReturnScreen || "pastItemsScreen");
+}
+
+function openEggCountSheet() {
+    const food = foods.find(function(item) {
+      return String(item.id) === String(reRegisterFoodId);
+    });
+    if (!food || !isEggFood(food)) return;
+
+    const counts = [1, 2, 3, 4, 5, 6, 8, 10, 12];
+    const container = document.getElementById("eggCountOptions");
+    container.innerHTML = counts.map(function(count) {
+      const selected = String(reRegisterEggCount) === String(count) ? " selected" : "";
+      return '<button class="egg-count-option' + selected + '" type="button" onclick="selectReRegisterEggCount(' + count + ')">' +
+        count + '個</button>';
+    }).join("");
+
+    const sheet = document.getElementById("eggCountSheet");
+    sheet.classList.add("show");
+    sheet.setAttribute("aria-hidden", "false");
+}
+
+function selectReRegisterEggCount(count) {
+    reRegisterEggCount = String(count);
+    document.getElementById("reRegisterEggCountText").textContent = count + "個";
+    document.querySelectorAll(".egg-count-option").forEach(function(button) {
+      button.classList.toggle("selected", button.textContent.trim() === count + "個");
+    });
+}
+
+function closeEggCountSheet() {
+    const sheet = document.getElementById("eggCountSheet");
+    if (!sheet) return;
+    sheet.classList.remove("show");
+    sheet.setAttribute("aria-hidden", "true");
+}
+
+function saveReRegister() {
+    const food = foods.find(function(item) {
+      return String(item.id) === String(reRegisterFoodId);
+    });
+    if (!food) return;
+
+    const purchaseDate = document.getElementById("reRegisterPurchaseDate").value;
+    const expiry = document.getElementById("reRegisterExpiry").value;
+    const note = document.getElementById("reRegisterNote").value.trim();
+    const wasEmpty = Boolean(food.inventoryEmpty);
+    const nowIso = new Date().toISOString();
+
+    food.purchaseDate = purchaseDate;
+    food.expiry = expiry;
+    food.note = note;
+    food.inventoryEmpty = false;
+    food.shopping = false;
+    food.buyNext = false;
+    food.updatedAt = nowIso;
+
+    if (isEggFood(food) && reRegisterEggCount) {
+      const amount = Number(reRegisterEggCount);
+      food.amount = formatInventoryAmount(amount);
+      food.unit = "個";
+      food.inventoryLots = [{
+        id: "reregister-" + Date.now(),
+        amount: formatInventoryAmount(amount),
+        expiry: expiry || "",
+        purchaseDate: purchaseDate || "",
+        createdAt: nowIso
+      }];
+    } else if (wasEmpty) {
+      food.amount = "";
+      food.inventoryLots = [];
+    }
+
+    saveFoods();
+    refreshFoodViews();
+
+    const returnScreen = reRegisterReturnScreen || "homeScreen";
+    reRegisterFoodId = null;
+    closeEggCountSheet();
+    showScreen(returnScreen);
+    showToast("現在あるものへ登録しました");
 }
     populateFoodSuggestions();
     setDefaultUnitByCategory(true);
