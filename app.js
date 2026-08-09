@@ -114,59 +114,98 @@
       });
     }
 
-    function renderHome() {
-      const stockedFoods = foods.filter(function(food) {
-        return !food.inventoryEmpty;
-      });
+function renderHome() {
+  const stockedFoods = foods.filter(function(food) {
+    return !food.inventoryEmpty && food.location !== "冷凍";
+  });
 
-      document.getElementById("totalCount").textContent = stockedFoods.length;
-      document.getElementById("seasoningCount").textContent =
-        seasonings.length;
-const shoppingFoodCount = foods.filter(function(food) {
-        return Boolean(food.shopping || food.buyNext);
-      }).length;
+  const shoppingFoodCount = foods.filter(function(food) {
+    return Boolean(food.shopping || food.buyNext);
+  }).length;
+  const shoppingSeasoningCount = seasonings.filter(function(item) {
+    return Boolean(item.buyNext);
+  }).length;
+  const shoppingCount = document.getElementById("shoppingCount");
+  if (shoppingCount) {
+    shoppingCount.textContent = shoppingFoodCount + shoppingSeasoningCount + "件";
+  }
 
-      const shoppingSeasoningCount = seasonings.filter(function(item) {
-        return Boolean(item.buyNext);
-      }).length;
+  const list = document.getElementById("homeInventoryList");
+  if (!list) return;
 
-      document.getElementById("shoppingCount").textContent =
-        shoppingFoodCount + shoppingSeasoningCount + "件";
-      const urgentFoods = sortFoodsByExpiry(stockedFoods).filter(function(food) {
-        return getDaysLeft(food.expiry) <= 3;
-      });
+  const displayFoods = sortFoodsByPurchaseNewest(stockedFoods);
+  if (displayFoods.length === 0) {
+    list.innerHTML = '<div class="ideal-inventory-empty">まだ食材が登録されていません。<br>下の＋から追加できます。</div>';
+    return;
+  }
 
-      document.getElementById("urgentCount").textContent =
-        urgentFoods.length;
+  list.innerHTML = displayFoods.map(function(food) {
+    return createIdealInventoryCardHtml(food);
+  }).join("");
+}
 
-      const urgentList = document.getElementById("urgentList");
+function toggleHomeMenu() {
+  const panel = document.getElementById("homeMenuPanel");
+  if (!panel) return;
+  panel.hidden = !panel.hidden;
+}
 
-      if (stockedFoods.length === 0) {
-        urgentList.innerHTML =
-          '<div class="home-empty">まだ食材が登録されていません。<br>「食材を追加」から登録できます。</div>';
-        return;
-      }
+function closeHomeMenu() {
+  const panel = document.getElementById("homeMenuPanel");
+  if (panel) panel.hidden = true;
+}
 
-      const displayFoods = sortFoodsByExpiry(stockedFoods).filter(function(food) {
-        return getDaysLeft(food.expiry) <= 7;
-      });
+function getFoodPurchaseDateForDisplay(food) {
+  return food.purchaseDate || getDateOnlyFromTimestamp(food.createdAt) || "";
+}
 
-      if (displayFoods.length === 0) {
-        urgentList.innerHTML =
-          '<div class="home-empty">7日以内に期限が来る食材はありません。</div>';
-        return;
-      }
+function sortFoodsByPurchaseNewest(items) {
+  return items.slice().sort(function(a, b) {
+    const aDate = getFoodPurchaseDateForDisplay(a);
+    const bDate = getFoodPurchaseDateForDisplay(b);
+    if (aDate !== bDate) return bDate.localeCompare(aDate);
+    return Number(b.id || 0) - Number(a.id || 0);
+  });
+}
 
-      urgentList.innerHTML =
-        '<div class="home-urgent-list">' +
-        displayFoods
-          .slice(0, 5)
-          .map(function(food) {
-            return createHomeUrgentHtml(food);
-          })
-          .join("") +
-        "</div>";
-    }
+function formatIdealDate(value) {
+  if (!value) return "—";
+  return String(value).replace(/-/g, "/");
+}
+
+function getIdealFoodIcon(food) {
+  const name = String(food.name || "");
+  if (/卵|たまご|玉子/.test(name)) return "🥚";
+  if (/牛乳|ミルク/.test(name)) return "🥛";
+  if (/納豆/.test(name)) return "▱";
+  if (/豆腐/.test(name)) return "◇";
+  if (/レタス|キャベツ|白菜|葉/.test(name)) return "♧";
+  if (/肉|鶏|豚|牛/.test(name)) return "◒";
+  if (/魚|鮭|さば|サバ|まぐろ|マグロ/.test(name)) return "◡";
+  if (food.category === "野菜") return "♧";
+  if (food.category === "果物") return "○";
+  if (food.category === "飲み物") return "▥";
+  return "□";
+}
+
+function createIdealInventoryCardHtml(food) {
+  const purchase = formatIdealDate(getFoodPurchaseDateForDisplay(food));
+  const expiry = formatIdealDate(food.expiry || "");
+  return (
+    '<button class="ideal-inventory-card" type="button" onclick="openQuickStockEdit(' + food.id + ')">' +
+      '<span class="ideal-food-icon-wrap"><span class="ideal-food-icon">' + escapeHtml(getIdealFoodIcon(food)) + '</span></span>' +
+      '<span class="ideal-food-content">' +
+        '<span class="ideal-food-name">' + escapeHtml(food.name || "") + '</span>' +
+        '<span class="ideal-food-dates">' +
+          '<span><small>購入日</small><strong>' + escapeHtml(purchase) + '</strong></span>' +
+          '<span class="ideal-date-divider" aria-hidden="true"></span>' +
+          '<span><small>期限</small><strong>' + escapeHtml(expiry) + '</strong></span>' +
+        '</span>' +
+      '</span>' +
+      '<span class="ideal-food-chevron" aria-hidden="true">›</span>' +
+    '</button>'
+  );
+}
 
     function openAddFood() {
       resetFoodForm();
@@ -938,7 +977,7 @@ function toggleShoppingItem(id) {
 
       const sortType = sortSelect
         ? sortSelect.value
-        : "expiry";
+        : "newest";
 
       let filteredFoods = foods.filter(function(food) {
         if (food.inventoryEmpty) return false;
@@ -958,9 +997,7 @@ function toggleShoppingItem(id) {
       }
 
       if (sortType === "newest") {
-        filteredFoods.sort(function(a, b) {
-          return Number(b.id) - Number(a.id);
-        });
+        filteredFoods = sortFoodsByPurchaseNewest(filteredFoods);
       }
 
       if (sortType === "name") {
@@ -987,7 +1024,7 @@ function toggleShoppingItem(id) {
           if (food.location === "冷凍") {
             return createFoodHtml(food, true);
           }
-          return createFreezeSwipeFoodHtml(food);
+          return createIdealInventoryCardHtml(food);
         })
         .join("");
     }
