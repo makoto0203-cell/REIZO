@@ -16,107 +16,34 @@
 <body>
   <main class="app">
 
-    <!-- ホーム -->
-    <section id="homeScreen" class="screen active">
-      <header class="hero">
-        <h1 class="logo">REIZO</h1>
-        <p class="subtitle">冷蔵庫の食材を、期限が近い順に管理</p>
-      </header>
+<!-- ホーム / 冷蔵庫一覧 -->
+<section id="homeScreen" class="screen active home-inventory-screen">
+  <header class="ideal-home-header">
+    <h1 class="ideal-logo">REIZO</h1>
+    <button class="ideal-menu-button" type="button" onclick="toggleHomeMenu()" aria-label="メニュー">☰</button>
+  </header>
 
-      <div class="summary-grid">
-        <div class="summary-card">
-          <span id="totalCount" class="summary-number">0</span>
-          <span class="summary-label">登録食材</span>
-        </div>
+  <div id="homeMenuPanel" class="ideal-home-menu" hidden>
+    <button type="button" onclick="showShoppingList(); closeHomeMenu();">🛒 買い物リスト <span id="shoppingCount">0件</span></button>
+    <button type="button" onclick="showScreen('categoryScreen'); closeHomeMenu();">カテゴリー</button>
+  </div>
 
-        <div class="summary-card">
-          <span id="urgentCount" class="summary-number">0</span>
-          <span class="summary-label">3日以内</span>
-        </div>
+  <nav class="ideal-top-tabs" aria-label="在庫タブ">
+    <button class="ideal-top-tab active" type="button" onclick="showScreen('homeScreen')">
+      <span class="ideal-tab-icon">▣</span><span>冷蔵庫</span>
+    </button>
+    <button class="ideal-top-tab" type="button" onclick="showScreen('seasoningScreen')">
+      <span class="ideal-tab-icon">♙</span><span>調味料</span>
+    </button>
+    <button class="ideal-top-tab" type="button" onclick="showScreen('freezerScreen')">
+      <span class="ideal-tab-icon">❄</span><span>冷凍庫</span>
+    </button>
+  </nav>
 
-        <div class="summary-card">
-          <span id="seasoningCount" class="summary-number">0</span>
-          <span class="summary-label">調味料</span>
-        </div>
-      </div>
-<div class="card home-shopping-card" role="button" tabindex="0" onclick="showShoppingList()">
-    <h2 class="section-title">
-        🛒 買い物リスト <span class="section-note">→</span>
-        <span class="section-note" id="shoppingCount">0件</span>
-    </h2>
+  <div id="homeInventoryList" class="ideal-inventory-list"></div>
 
-</div>
-      <div class="card home-urgent-card">
-        <div class="home-urgent-header">
-          <h2 class="section-title">賞味期限が近い食材</h2>
-          <div class="home-urgent-links">
-            <span class="section-note">期限順</span>
-            <a href="#"
-              id="viewAllUrgent"
-              class="home-view-all"
-              onclick="document.getElementById('stockSort').value='expiry'; showScreen('stockScreen'); renderStock(); return false;">
-              すべて見る →
-            </a>
-          </div>
-        </div>
-        <div id="urgentList"></div>
-      </div>
-
-      <h2 class="home-shortcut-title">ショートカット</h2>
-      <div class="menu-grid">
-        <button
-          class="menu-button"
-          type="button"
-          onclick="openAddFood()"
-        >
-          <span class="menu-icon">＋</span>
-          <span class="menu-title">食材を追加</span>
-          <span class="menu-description">
-            食品名・数量・期限を登録
-          </span>
-        </button>
-
-        <button
-          class="menu-button"
-          type="button"
-          onclick="document.getElementById('stockSort').value='expiry'; showScreen('stockScreen'); renderStock();"
-        >
-          <span class="menu-icon">🧊</span>
-          <span class="menu-title">冷蔵庫の中</span>
-          <span class="menu-description">
-            在庫を期限順に確認
-          </span>
-        </button>
-
-        <button
-          class="menu-button"
-          type="button"
-          onclick="showScreen('categoryScreen')"
-        >
-          <span class="menu-icon">📂</span>
-          <span class="menu-title">カテゴリー</span>
-          <span class="menu-description">
-            肉・魚・野菜などで表示
-          </span>
-        </button>
-
-        <button
-          class="menu-button"
-          type="button"
-          onclick="showScreen('seasoningScreen')"
-        >
-          <span class="menu-icon">🧂</span>
-          <span class="menu-title">調味料</span>
-          <span class="menu-description">
-            調味料を別枠で管理
-          </span>
-        </button>
-      </div>
-
-      <p class="footer-note">
-        データはこのブラウザ内に保存されます
-      </p>
-    </section>
+  <button class="ideal-floating-add" type="button" onclick="openAddFood()" aria-label="食材を追加">＋</button>
+</section>
 
     <!-- 食材追加・編集 -->
     <section id="addScreen" class="screen">
@@ -327,8 +254,8 @@
         >
 
         <select id="stockSort" onchange="renderStock()">
+          <option value="newest" selected>購入日が新しい順</option>
           <option value="expiry">期限が近い順</option>
-          <option value="newest">登録が新しい順</option>
           <option value="name">名前順</option>
         </select>
       </div>
